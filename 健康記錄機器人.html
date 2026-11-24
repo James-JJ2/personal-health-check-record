@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" class="locked">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -125,18 +125,213 @@ button.del{padding:0 6px;font-size:12px;color:var(--crit)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips label{display:flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:13px;cursor:pointer}
 .sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);font-size:12px;padding:0 8px;border-radius:4px;margin-left:8px;vertical-align:middle;font-family:var(--body);font-weight:500}
+/* ---------- 彩色色塊美化 ---------- */
+:root{--c1:#0f8f96;--c2:#e8772e;--c3:#7b5cd6;--c4:#d94f7c;--c5:#2f9e5b;--c6:#2f7fd6}
+.mix{}
+header{background:linear-gradient(120deg,#0f6e73,#1f8f9a 45%,#2f7fd6);color:#fff;padding:22px 24px;border-radius:14px;box-shadow:0 6px 18px rgba(15,110,115,.25)}
+header h1{color:#fff}
+header .sub{color:rgba(255,255,255,.88)}
+header button{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.55)}
+header button:hover{border-color:#fff;background:rgba(255,255,255,.26)}
+header button.primary{background:#fff;color:#0f6e73;border-color:#fff;font-weight:700}
+header .sample{background:#fff3d6;color:#8a5200;border-color:#fff3d6}
+.drop{border-color:color-mix(in srgb,var(--c1) 45%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--c1) 7%,var(--surface)),color-mix(in srgb,var(--c6) 7%,var(--surface)))}
+nav{border-bottom:0;gap:8px}
+nav button[data-v=overview]{--tc:var(--c1)}nav button[data-v=labs]{--tc:var(--c3)}nav button[data-v=visits]{--tc:var(--c6)}nav button[data-v=meds]{--tc:var(--c2)}nav button[data-v=dental]{--tc:var(--c4)}nav button[data-v=other]{--tc:var(--c5)}
+nav button{border:1px solid color-mix(in srgb,var(--tc) 45%,transparent);border-radius:99px;padding:7px 16px;color:var(--tc);background:color-mix(in srgb,var(--tc) 10%,var(--surface));font-weight:500}
+nav button:hover{background:color-mix(in srgb,var(--tc) 20%,var(--surface))}
+nav button[aria-selected="true"]{background:var(--tc);color:#fff;border-color:var(--tc)}
+#v-overview{--vc:var(--c1)}#v-labs{--vc:var(--c3)}#v-visits{--vc:var(--c6)}#v-meds{--vc:var(--c2)}#v-dental{--vc:var(--c4)}#v-other{--vc:var(--c5)}
+.view .card{border-top:4px solid var(--vc);border-radius:10px}
+.view h2{color:var(--vc);display:flex;align-items:center;gap:8px}
+.view h2::before{content:"";flex:none;width:6px;height:18px;border-radius:3px;background:var(--vc)}
+.view th{background:color-mix(in srgb,var(--vc) 12%,var(--surface));color:color-mix(in srgb,var(--vc) 75%,var(--ink));font-weight:700}
+.view tbody tr:nth-child(even)>td{background:color-mix(in srgb,var(--vc) 4%,transparent)}
+.view tr.detail>td{background:var(--bg)}
+.tiles .tile:nth-child(1){--tc:var(--c1)}.tiles .tile:nth-child(2){--tc:var(--c2)}.tiles .tile:nth-child(3){--tc:var(--c6)}.tiles .tile:nth-child(4){--tc:var(--c3)}
+.tile{border:0;border-radius:12px;background:color-mix(in srgb,var(--tc) 13%,var(--surface));border-left:6px solid var(--tc)}
+.tile .k{color:color-mix(in srgb,var(--tc) 70%,var(--ink));font-weight:700}
+.tile .v{color:var(--tc)}
+.bar:nth-child(6n+1) .fill{background:var(--c1)}.bar:nth-child(6n+2) .fill{background:var(--c2)}.bar:nth-child(6n+3) .fill{background:var(--c3)}.bar:nth-child(6n+4) .fill{background:var(--c4)}.bar:nth-child(6n+5) .fill{background:var(--c5)}.bar:nth-child(6n) .fill{background:var(--c6)}
+.bar .track{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.pill{border-radius:99px;font-weight:700}
+.pill.hi{background:var(--crit);color:#fff;border-color:var(--crit)}
+.pill.lo{background:var(--c6);color:#fff;border-color:var(--c6)}
+.pill.ok{background:var(--good);color:#fff;border-color:var(--good)}
+.g0{--gc:var(--c3)}.g1{--gc:var(--c2)}.g2{--gc:var(--c4)}.g3{--gc:var(--c5)}.g4{--gc:var(--c6)}.gx{--gc:var(--accent)}
+.gtag{display:inline-block;font-size:12px;padding:0 8px;margin-left:6px;border-radius:4px;background:var(--gc);color:#fff;font-weight:700;white-space:nowrap}
+button.grp{border-color:var(--gc);color:var(--gc);background:color-mix(in srgb,var(--gc) 10%,var(--surface));font-weight:700}
+button.grp:hover{background:var(--gc);color:#fff}
+.labs .lab{background:color-mix(in srgb,var(--gc,var(--accent)) 8%,var(--surface));border-top:5px solid var(--gc,var(--accent));border-radius:10px}
+.lab .name{color:var(--gc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+button.stat{border:0;border-radius:12px;padding:12px 16px;text-align:left;background:var(--sc);color:#fff;display:flex;flex-direction:column;gap:2px;box-shadow:0 3px 10px color-mix(in srgb,var(--sc) 35%,transparent)}
+button.stat:hover{filter:brightness(1.08)}
+button.stat .sn{font-size:28px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+button.stat .sl{font-size:13px;opacity:.92}
+/* ---------- 手機友善 ---------- */
+.grid2{grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.labs{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
+nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;-webkit-overflow-scrolling:touch}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:none}
+@media (max-width:600px){
+  body{font-size:15px}
+  .wrap{padding:12px 10px 40px;gap:14px}
+  header{padding:16px;border-radius:12px}
+  h1{font-size:22px}
+  .hbtns{width:100%}.hbtns button{flex:1 1 0}
+  button,.btn,select,input[type=search]{min-height:44px;font-size:16px}
+  td button.exp{min-height:32px;min-width:36px;font-size:15px}
+  input.pick{width:24px;height:24px}
+  .drop{padding:14px}.drop p{font-size:14px}
+  .drop .actions{width:100%}.drop .actions button{flex:1 1 0}
+  .tools{gap:6px}.tools button{flex:1 1 auto}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tile{padding:10px 12px}.tile .v{font-size:20px}
+  .card{padding:12px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  button.stat .sn{font-size:24px}
+  .bar{grid-template-columns:minmax(0,1.4fr) 1fr 32px}
+  .card>.scroll>table>thead{display:none}
+  .card>.scroll>table>tbody>tr{display:grid;padding:10px 8px;border-bottom:1px solid var(--line);border-radius:8px}
+  .card>.scroll>table>tbody>tr[hidden]{display:none}
+  .view .card>.scroll>table>tbody>tr>td{display:flow-root;border:0;padding:3px 0 3px 7.5em;text-align:left!important;white-space:normal!important;background:none}
+  .card>.scroll>table>tbody>tr>td::before{content:attr(data-l);float:left;width:7em;margin-left:-7.5em;color:var(--muted);font-size:13px;font-weight:500}
+  .card>.scroll>table>tbody>tr>td:empty{display:none}
+  .card>.scroll>table>tbody>tr:nth-child(even){background:color-mix(in srgb,var(--vc,var(--accent)) 6%,transparent)}
+  .card>.scroll>table>tbody>tr.detail{background:var(--bg)}
+  .view .card>.scroll>table>tbody>tr.detail>td{padding-left:0}
+  .card>.scroll>table>tbody>tr.detail>td::before{display:none}
+  tr.bad{box-shadow:inset 5px 0 0 var(--crit)}
+  tr.bad>td:first-child{box-shadow:none}
+  tr.total{background:color-mix(in srgb,var(--vc,var(--accent)) 12%,transparent)!important}
+}
+/* ---------- 右上角深淺色切換 ---------- */
+header{position:relative;padding-right:128px}
+#btnTheme{position:absolute;top:14px;right:14px;min-height:40px;padding:6px 14px;border-radius:99px;background:rgba(255,255,255,.95);color:#0f4f53;border:0;font-weight:700;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.18);display:flex;align-items:center;gap:6px}
+#btnTheme:hover{background:#fff}
+:root[data-theme=dark] #btnTheme{background:#1d3436;color:#ffd76a}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]) #btnTheme{background:#1d3436;color:#ffd76a}}
+#btnTheme .ic{font-size:17px;line-height:1}
+@media (max-width:600px){header{padding-right:16px;padding-top:62px}#btnTheme{top:12px;right:12px;font-size:15px}}
+/* ---------- 不同功能不同色塊 ---------- */
+#btnPick{--fc:var(--c6)}#btnClear{--fc:var(--crit)}#btnXlsx{--fc:var(--c5)}
+#selAll{--fc:var(--c1)}#selNone{--fc:#6b7f82}#expAll{--fc:var(--c2)}#expNone{--fc:var(--c3)}
+#btnPick,#btnClear,#btnXlsx,#selAll,#selNone,#expAll,#expNone{background:var(--fc);color:#fff;border:1px solid var(--fc);font-weight:700;border-radius:8px;box-shadow:0 2px 6px color-mix(in srgb,var(--fc) 30%,transparent)}
+#btnPick:hover,#btnClear:hover,#btnXlsx:hover,#selAll:hover,#selNone:hover,#expAll:hover,#expNone:hover{background:var(--fc);filter:brightness(1.1)}
+button.exp{--fc:var(--c2);background:color-mix(in srgb,var(--fc) 15%,var(--surface));color:var(--fc);border-color:var(--fc);font-weight:700}
+button.exp[aria-expanded=true]{background:var(--fc);color:#fff}
+label.chk{background:color-mix(in srgb,var(--c2) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--c2) 45%,transparent);padding:6px 10px;border-radius:8px;color:color-mix(in srgb,var(--c2) 65%,var(--ink));font-weight:500}
+.view input[type=search],.view select{border:2px solid color-mix(in srgb,var(--vc) 50%,var(--line));border-radius:8px}
+.notice{border-radius:8px;border-left-width:6px}
+footer{max-width:none;background:color-mix(in srgb,var(--ink) 5%,transparent);border-left:5px solid #6b7f82;padding:12px 14px;border-radius:10px}
+#btnRefresh{--fc:var(--c3);background:var(--fc);color:#fff;border:1px solid var(--fc);font-weight:700;border-radius:8px;box-shadow:0 2px 6px color-mix(in srgb,var(--fc) 30%,transparent)}
+#btnRefresh:hover{background:var(--fc);filter:brightness(1.1)}
+.tabrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0}
+.tabrow nav{position:static;flex:1 1 560px;min-width:0;padding:0;background:none}
+.tabrow .drop{flex:none;border:0;background:none;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-radius:10px}
+.tabrow .drop.over{outline:3px dashed var(--c6);outline-offset:4px}
+.tabrow .drop button,.tabrow .drop label.chk{min-height:42px;white-space:nowrap}
+header #btnRefresh{min-height:40px}
+@media (max-width:600px){.tabrow{position:static}.tabrow nav{flex-basis:100%}.tabrow .drop{width:100%}.tabrow .drop button{flex:1 1 0}.tabrow .drop label.chk{flex:1 1 100%;justify-content:center}}
+#btnRefresh{flex:none;white-space:nowrap;min-height:42px;padding:7px 16px;border-radius:99px;font-size:15px}
+@media (max-width:600px){#btnRefresh{padding:6px 12px;font-size:14px}}
+.mini{display:inline-block;line-height:0;vertical-align:middle}
+.mini svg{display:block}
+td.mini-td{padding-top:4px;padding-bottom:4px;width:120px}
+.ver{display:inline-block;margin-left:10px;vertical-align:middle;font-family:var(--body);font-size:13px;font-weight:700;padding:1px 10px;border-radius:99px;background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.6)}
+/* ---------- 密碼鎖與管理介面 ---------- */
+.lock{display:none}
+html.locked .wrap,html.locked #btnAdmin{display:none}
+html.locked .lock{display:flex;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0f6e73,#2f7fd6)}
+.lock-card{background:var(--surface);color:var(--ink);border-radius:18px;padding:28px 24px;width:min(380px,100%);display:flex;flex-direction:column;gap:12px;align-items:stretch;box-shadow:0 14px 40px rgba(0,0,0,.28);text-align:center}
+.lock-ic{align-self:center}
+.lock-card h2{font-family:var(--display);font-size:24px;margin:0}
+.lock-card .sub{margin:0}
+#lockPw{font:inherit;font-size:20px;letter-spacing:.12em;text-align:center;padding:12px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-height:52px;width:100%}
+#lockPw:focus{outline:none;border-color:var(--c6)}
+.show{font-size:14px;color:var(--muted);display:flex;gap:6px;justify-content:center;align-items:center;cursor:pointer}
+.lock-go{background:var(--c6);color:#fff;border:0;border-radius:10px;font-size:18px;font-weight:700;min-height:50px}
+.lock-go:hover{filter:brightness(1.08)}
+.lock-msg{color:var(--crit);margin:0;min-height:1.4em;font-weight:700}
+#btnAdmin{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:20;background:#34444a;color:#fff;border:0;border-radius:99px;padding:10px 18px;font-weight:700;min-height:44px;box-shadow:0 4px 14px rgba(0,0,0,.28)}
+#btnAdmin:hover{background:#23323a}
+.wrap{padding-bottom:88px}
+.adm[hidden]{display:none}
+.adm{position:fixed;inset:0;z-index:40;background:rgba(10,20,22,.55);display:flex;align-items:flex-end;justify-content:flex-end;padding:16px}
+.adm-card{background:var(--surface);color:var(--ink);border-radius:16px;padding:18px 20px;width:min(400px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:10px;border-top:6px solid #34444a;box-shadow:0 14px 40px rgba(0,0,0,.3)}
+.adm-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.adm-head h2{margin:0;font-size:18px}
+#admClose{min-width:40px;min-height:40px;padding:0;border-radius:99px}
+.adm-card h3{margin:4px 0 0;font-size:15px;color:var(--c6)}
+.adm-card label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.adm-card input{font:inherit;font-size:16px;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-height:44px}
+.adm-btns{display:flex;gap:8px;flex-wrap:wrap}
+.adm-btns button{flex:1 1 140px;min-height:44px;font-weight:700}
+.adm-save{background:var(--c5);color:#fff;border-color:var(--c5)}
+.adm-lock{background:var(--c2);color:#fff;border-color:var(--c2);font-weight:700;min-height:44px}
+.adm-card hr{border:0;border-top:1px solid var(--line);width:100%;margin:4px 0}
+.adm-card .sub{margin:0}
+.adm-msg{margin:0;font-size:14px;min-height:1.3em}
+.adm-msg.err{color:var(--crit);font-weight:700}
+.adm-msg.ok{color:var(--good);font-weight:700}
+@media (max-width:600px){.adm{align-items:flex-end;justify-content:center;padding:10px}.adm-card{width:100%}#btnAdmin{right:12px}}
+/* ---------- 健康記錄機器人專用配色 ---------- */
+:root{--c7:#a0632b}
+nav button[data-v=focus]{--tc:var(--c4)}nav button[data-v=dental]{--tc:var(--c7)}
+#v-focus{--vc:var(--c4)}#v-dental{--vc:var(--c7)}
+header .who .sub{color:rgba(255,255,255,.9)}
+header select{background:rgba(255,255,255,.95);color:#0f4f53;border:0;border-radius:8px;min-height:38px;font-weight:700}
+#btnPerson{--fc:var(--c6)}#btnImg{--fc:var(--c2)}#btnPaste{--fc:var(--c1)}#btnManual{--fc:var(--c3)}
+#btnFile{--fc:#3d6fb0}#btnBackup{--fc:#4f7f8a}#btnRestore{--fc:#6b6fa8}#btnInstall{--fc:var(--c5)}
+#btnImg,#btnPaste,#btnManual,#btnFile,#btnBackup,#btnRestore,#btnInstall,header #btnPerson{background:var(--fc);color:#fff;border:1px solid var(--fc);font-weight:700;border-radius:8px;box-shadow:0 2px 6px color-mix(in srgb,var(--fc) 30%,transparent)}
+#btnImg:hover,#btnPaste:hover,#btnManual:hover,#btnFile:hover,#btnBackup:hover,#btnRestore:hover,#btnInstall:hover,header #btnPerson:hover{background:var(--fc);filter:brightness(1.1)}
+#btnImg{font-size:16px;padding:9px 18px}
+#btnInstall[hidden]{display:none}
+.filebar{border-left:6px solid #3d6fb0;border-radius:10px}
+.panel{border-radius:12px;border-color:var(--c2)}
+.drop{border-radius:12px}
+.drop .actions button{min-height:42px}
+@media (max-width:600px){header{padding-top:62px}.who{width:100%}.who select{flex:1}.drop .actions button{flex:1 1 calc(50% - 8px)}.filebar button{flex:1 1 calc(50% - 8px)}}
 </style>
 </head>
 <body>
+<div class="lock" id="lock">
+  <form class="lock-card" id="lockForm" autocomplete="off">
+    <svg class="lock-ic" viewBox="0 0 48 48" width="52" height="52" aria-hidden="true"><rect x="9" y="21" width="30" height="21" rx="5" fill="#2f7fd6"/><path d="M15 21v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#0f6e73" stroke-width="4.5" stroke-linecap="round"/><circle cx="24" cy="31" r="3.2" fill="#fff"/><rect x="22.6" y="32" width="2.8" height="5.5" rx="1.4" fill="#fff"/></svg>
+    <h2>健康存摺統計工具</h2>
+    <p class="sub">請輸入使用者密碼</p>
+    <input type="password" id="lockPw" aria-label="使用者密碼" autocomplete="current-password">
+    <label class="show" for="lockShow"><input type="checkbox" id="lockShow"> 顯示密碼</label>
+    <button type="submit" class="lock-go">進入</button>
+    <p class="lock-msg" id="lockMsg" role="alert"></p>
+  </form>
+</div>
+<button type="button" id="btnAdmin" aria-label="開啟管理介面">⚙ 管理</button>
+<div class="adm" id="admin" hidden role="dialog" aria-modal="true" aria-labelledby="admTitle">
+  <form class="adm-card" id="admForm" autocomplete="off">
+    <div class="adm-head"><h2 id="admTitle">管理介面</h2><button type="button" id="admClose" aria-label="關閉">✕</button></div>
+    <h3>變更使用者密碼</h3>
+    <label>目前密碼<input type="password" id="admOld" autocomplete="current-password"></label>
+    <label>新密碼（至少 4 個字元）<input type="password" id="admNew" autocomplete="new-password"></label>
+    <label>再輸入一次新密碼<input type="password" id="admNew2" autocomplete="new-password"></label>
+    <div class="adm-btns"><button type="submit" class="adm-save">儲存新密碼</button><button type="button" id="admReset">恢復預設密碼</button></div>
+    <p class="adm-msg" id="admMsg" role="status"></p>
+    <hr>
+    <button type="button" id="admLock" class="adm-lock">🔒 立即鎖定畫面</button>
+    <p class="sub">密碼只存在這台裝置的這個瀏覽器，手機和電腦要各自設定。忘記密碼時，清除這個網站的瀏覽資料就會回到預設密碼，但已保留的健康資料也會一起清掉。</p>
+  </form>
+</div>
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-24：彩色版面、小趨勢圖、使用者密碼與管理介面">V1.1</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
       <span class="who"><label for="person" class="sub">目前的人</label><select id="person" aria-label="目前的人"></select><button type="button" id="btnPerson">管理成員</button></span>
-      <button id="btnTheme" type="button">切換深色</button><button class="primary" id="btnXlsx" type="button">匯出 Excel</button>
+      <button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button><button class="primary" id="btnXlsx" type="button">匯出 Excel</button>
     </div>
   </header>
 
@@ -507,7 +702,28 @@ function noResultCard(d){
   var L=Object.keys(m).map(function(k){return m[k]});if(!L.length)return"";
   var thy=GROUPS[0].re;L.sort(function(a,b){return(thy.test(b.name+b.code)?1:0)-(thy.test(a.name+a.code)?1:0)||b.dates.length-a.dates.length});
   return'<div class="card"><h2>有開立檢驗、但檔案裡沒有結果數值的項目</h2><p class="sub">健康存摺的 XML 只記錄了這些檢驗的開立日期，院所沒有上傳數值，所以無法畫曲線。數值請向開立的院所查詢。</p>'+
-    tbl([["項目"],["代碼"],["開立次數",1],["開立日期"],["院所"]],L.map(function(r){return'<tr><td style="white-space:normal"><strong>'+esc(r.name)+'</strong>'+(thy.test(r.name+r.code)?' <span class="pill ok">甲狀腺</span>':"")+'</td><td>'+esc(r.code)+'</td><td class="num">'+r.dates.length+'</td><td style="white-space:normal">'+r.dates.map(fmtD).map(esc).join("、")+'</td><td>'+esc(Object.keys(r.inst).join("、"))+'</td></tr>'}).join(""))+'</div>';
+    tbl([["項目"],["代碼"],["開立次數",1],["開立日期"],["院所"]],L.map(function(r){return'<tr><td style="white-space:normal"><strong>'+esc(r.name)+'</strong>'+(thy.test(r.name+r.code)?' <span class="gtag g0">甲狀腺</span>':"")+'</td><td>'+esc(r.code)+'</td><td class="num">'+r.dates.length+'</td><td style="white-space:normal">'+r.dates.map(fmtD).map(esc).join("、")+'</td><td>'+esc(Object.keys(r.inst).join("、"))+'</td></tr>'}).join(""))+'</div>';
+}
+function gidx(s){for(var i=0;i<GROUPS.length;i++){if(GROUPS[i].re.test(s.name+" "+s.sub+" "+s.code))return i}return -1}
+function gcls(s){var i=gidx(s);return i<0?"gx":"g"+i}
+function gtag(s){var i=gidx(s);return i<0?"":'<span class="gtag g'+i+'">'+esc(GROUPS[i].name)+'</span>'}
+function statBlocks(S){var c={hi:0,lo:0,ok:0,"":0};S.forEach(function(x){c[x.lastp.f||""]++});
+  return'<div class="card"><h2>最近一次結果分類</h2><div class="stats">'+[["hi","最近偏高","var(--crit)"],["lo","最近偏低","var(--c6)"],["ok","範圍內","var(--good)"],["","無參考值或文字結果","#6b7f82"]].map(function(r){return'<button type="button" class="stat" data-f="'+r[0]+'" style="--sc:'+r[2]+'"><span class="sn">'+c[r[0]]+'</span><span class="sl">'+r[1]+'</span></button>'}).join("")+'</div><p class="sub" style="margin-top:8px">點色塊可一次選取該類項目，下方會畫出曲線。</p></div>'}
+function mini(s){
+  var P=s.num,W=110,H=30,pd=4,bad=function(p){return p.f==="hi"||p.f==="lo"};
+  if(!P.length)return'<span class="sub">—</span>';
+  var col=function(p){return bad(p)?"var(--crit)":"var(--gc,var(--accent))"};
+  if(P.length<2)return'<span class="mini '+gcls(s)+'"><svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="只有一次數值"><line x1="'+pd+'" x2="'+(W-pd)+'" y1="'+H/2+'" y2="'+H/2+'" stroke="var(--line)" stroke-dasharray="3 3"/><circle cx="'+W/2+'" cy="'+H/2+'" r="3.5" fill="'+col(P[0])+'"/></svg></span>';
+  var vs=P.map(function(p){return p.v}),mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs),r=s.lastp.ref||P[P.length-1].ref;
+  var lo=r&&r.lo!=null?r.lo:null,hi=r&&r.hi!=null&&r.hi<99999?r.hi:null,span=(mx-mn)||Math.abs(mx)||1;
+  var y0=mn,y1=mx;if(lo!=null&&lo>=mn-span)y0=Math.min(y0,lo);if(hi!=null&&hi<=mx+span)y1=Math.max(y1,hi);
+  var pp=(y1-y0||1)*0.1;y0-=pp;y1+=pp;
+  var X=function(i){return pd+i*(W-2*pd)/(P.length-1)},Y=function(v){return pd+(y1-v)/(y1-y0)*(H-2*pd)};
+  var g="";
+  if(lo!=null||hi!=null){var bt=Y(hi!=null?Math.min(hi,y1):y1),bb=Y(lo!=null?Math.max(lo,y0):y0);if(bb>bt)g+='<rect x="'+pd+'" y="'+bt.toFixed(1)+'" width="'+(W-2*pd)+'" height="'+(bb-bt).toFixed(1)+'" fill="var(--accent-soft)"/>'}
+  g+='<polyline points="'+P.map(function(p,i){return X(i).toFixed(1)+","+Y(p.v).toFixed(1)}).join(" ")+'" fill="none" stroke="var(--gc,var(--accent))" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>';
+  P.forEach(function(p,i){var last=i===P.length-1;if(last||bad(p))g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(p.v).toFixed(1)+'" r="'+(last?3.2:2.2)+'" fill="'+col(p)+'"><title>'+esc(fmtD(p.date)+"　"+p.raw)+'</title></circle>'});
+  return'<span class="mini '+gcls(s)+'"><svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(s.name)+' 小趨勢圖">'+g+'</svg></span>';
 }
 function selKeys(S){return S.filter(function(x){return state.sel[x.key]})}
 function saveSel(){if(state.sample)return;person().sel=Object.keys(state.sel);saveAll()}
@@ -517,17 +733,17 @@ function renderLabs(d){
   if(!S.length){$("v-labs").innerHTML='<div class="card"><p class="sub">這份資料沒有檢驗結果。</p></div>';return}
   if(!state.selInit){state.selInit=true;var keep=state.sample?null:person().sel;
     state.sel={};if(keep&&!state.sample)keep.forEach(function(k){state.sel[k]=1});
-    if(!selKeys(S).length)S.filter(function(x){return x.num.length>=2}).slice(0,3).forEach(function(x){state.sel[x.key]=1})}
+    if(!selKeys(S).length)S.filter(function(x){return x.num.length>=2}).forEach(function(x){state.sel[x.key]=1})}
   var rows=S.map(function(s,i){
     var p=s.lastp,vs=s.num.map(function(q){return q.v}),bad=p.f==="hi"||p.f==="lo";
     var det=s.pts.slice().reverse().map(function(q){return'<tr><td>'+esc(fmtD(q.date))+'</td><td class="num"><strong>'+esc(q.raw)+'</strong></td><td>'+pill(q.f)+'</td><td>'+esc(refText(q.ref))+'</td><td>'+esc(q.inst)+(q.mid?' <span class="pill src">'+(SRC[q.src]||"手動")+'</span> <button type="button" class="del" data-mid="'+esc(q.mid)+'">刪除</button>':"")+'</td></tr>'}).join("");
     return'<tr'+(bad?' class="bad"':"")+'><td><input type="checkbox" class="pick" id="pick'+i+'" data-k="'+esc(s.key)+'"'+(state.sel[s.key]?" checked":"")+' aria-label="選取 '+esc(s.name)+'"></td>'+
       '<td><button class="exp" type="button" data-i="'+i+'" aria-expanded="false" aria-label="展開每次數值">＋</button></td>'+
-      '<td><label for="pick'+i+'"><strong>'+esc(s.name)+'</strong></label>'+(s.sub&&s.sub!==s.name&&s.sub.length<24?' <span style="color:var(--muted)">'+esc(s.sub)+'</span>':"")+'</td><td>'+esc(s.code)+'</td>'+
+      '<td><label for="pick'+i+'"><strong>'+esc(s.name)+'</strong></label>'+gtag(s)+(s.sub&&s.sub!==s.name&&s.sub.length<24?' <span style="color:var(--muted)">'+esc(s.sub)+'</span>':"")+'</td><td>'+esc(s.code)+'</td>'+
       '<td class="num">'+s.pts.length+'</td><td class="num"><strong>'+esc(p.raw)+'</strong></td><td>'+pill(p.f)+'</td><td>'+esc(refText(p.ref))+'</td>'+
       '<td class="num">'+(vs.length?avgOf(vs):"")+'</td><td class="num">'+(vs.length?Math.min.apply(null,vs):"")+'</td><td class="num">'+(vs.length?Math.max.apply(null,vs):"")+'</td><td>'+esc(fmtD(p.date))+'</td></tr>'+
       '<tr class="detail" id="ldet'+i+'" hidden><td></td><td></td><td colspan="10"><div class="scroll"><table><thead><tr><th>檢驗日期</th><th class="num">結果</th><th>判讀</th><th>參考值</th><th>院所</th></tr></thead><tbody>'+det+'</tbody></table></div></td></tr>'}).join("");
-  $("v-labs").innerHTML='<div class="card"><h2>檢驗項目列表</h2><div class="tools"><button type="button" id="selAll">全選</button><button type="button" id="selNone">取消全選</button><button type="button" id="expAll">全部展開</button><button type="button" id="expNone">全部收合</button></div><div class="tools"><span class="sub" style="align-self:center">快速選取：</span>'+GROUPS.map(function(g,i){var n=S.filter(function(x){return g.re.test(x.name+" "+x.sub+" "+x.code)}).length;return n?'<button type="button" class="grp" data-g="'+i+'">'+esc(g.name)+'（'+n+'）</button>':""}).join("")+'</div>'+
+  $("v-labs").innerHTML=statBlocks(S)+'<div class="card"><h2>檢驗項目列表</h2><div class="tools"><button type="button" id="selAll">全選</button><button type="button" id="selNone">取消全選</button><button type="button" id="expAll">全部展開</button><button type="button" id="expNone">全部收合</button></div><div class="tools"><span class="sub" style="align-self:center">快速選取：</span>'+GROUPS.map(function(g,i){var n=S.filter(function(x){return g.re.test(x.name+" "+x.sub+" "+x.code)}).length;return n?'<button type="button" class="grp g'+i+'" data-g="'+i+'">'+esc(g.name)+'（'+n+'）</button>':""}).join("")+'</div>'+
     '<p class="sub">勾選最前面的方框可複選，下方會列出曲線與統計表。按「＋」展開該項目每一次的數值。</p>'+
     tbl([["選取"],["展開"],["項目"],["代碼"],["次數",1],["最近結果",1],["判讀"],["參考值"],["平均",1],["最低",1],["最高",1],["最近日期"]],rows)+'</div>'+noResultCard(d)+'<div id="labSel" class="view"></div>';
   renderSel();
@@ -537,13 +753,13 @@ function renderSel(){
   if(!S.length){box.innerHTML='<div class="card"><h2>已選項目的曲線與統計</h2><p class="sub">還沒有選取項目。在上方列表勾選一個或多個檢驗項目。</p></div>';return}
   var charts=S.map(function(s){
     var lp=s.lastp,bad=lp.f==="hi"||lp.f==="lo";
-    return'<div class="lab'+(bad?" flag":"")+'"><div class="top"><div class="name">'+esc(s.name)+'</div><div class="latest">'+esc(lp.raw)+'</div></div>'+
-      '<div class="meta"><span>'+esc(s.code)+'</span>'+pill(lp.f)+(lp.ref?'<span>參考值 '+esc(refText(lp.ref))+'</span>':"")+'</div>'+
+    return'<div class="lab '+gcls(s)+(bad?" flag":"")+'"><div class="top"><div class="name">'+esc(s.name)+'</div><div class="latest">'+esc(lp.raw)+'</div></div>'+
+      '<div class="meta"><span>'+esc(s.code)+'</span>'+pill(lp.f)+(lp.ref?'<span>參考值 '+esc(refText(lp.ref))+'</span>':"")+'<span>最近 '+esc(fmtD(lp.date))+'</span></div>'+
       (s.num.length>=2?spark(s):'<p class="sub">數值少於兩次或為文字結果，無法畫曲線。</p>')+'</div>'}).join("");
   var st=S.map(function(s){var n=s.num,vs=n.map(function(q){return q.v}),f=n[0],l=n[n.length-1],out=s.pts.filter(function(q){return q.f==="hi"||q.f==="lo"}).length;
     var ch=n.length>=2?+(l.v-f.v).toFixed(3):"";
-    return'<tr><td><strong>'+esc(s.name)+'</strong></td><td class="num">'+s.pts.length+'</td><td class="num">'+(vs.length?avgOf(vs):"")+'</td><td class="num">'+(vs.length?Math.min.apply(null,vs):"")+'</td><td class="num">'+(vs.length?Math.max.apply(null,vs):"")+'</td>'+
-      '<td class="num">'+(f?esc(f.raw):"")+'</td><td class="num"><strong>'+esc(s.lastp.raw)+'</strong></td><td class="num">'+(ch===""?"":(ch>0?"+":"")+ch)+'</td><td class="num">'+out+'</td><td>'+esc(refText(s.lastp.ref))+'</td></tr>'}).join("");
+    return'<tr><td><strong>'+esc(s.name)+'</strong></td><td class="mini-td">'+mini(s)+'</td><td class="num">'+s.pts.length+'</td><td class="num">'+(vs.length?avgOf(vs):"")+'</td><td class="num">'+(vs.length?Math.min.apply(null,vs):"")+'</td><td class="num">'+(vs.length?Math.max.apply(null,vs):"")+'</td>'+
+      '<td class="num">'+(f?esc(f.raw):"")+'</td><td class="num"><strong>'+esc(s.lastp.raw)+'</strong></td><td class="num">'+(ch===""?"":(ch>0?"+":"")+ch)+'</td><td class="num">'+out+'</td><td>'+esc(refText(s.lastp.ref))+'</td><td style="white-space:nowrap"><strong>'+esc(fmtD(s.lastp.date))+'</strong></td></tr>'}).join("");
   var dates={};S.forEach(function(s){s.pts.forEach(function(q){dates[q.date]=1})});
   var pv=Object.keys(dates).sort().reverse().map(function(dt){
     return'<tr><td>'+esc(fmtD(dt))+'</td>'+S.map(function(s){var q=s.pts.filter(function(x){return x.date===dt});
@@ -551,7 +767,7 @@ function renderSel(){
   var thyOn=S.some(function(x){return GROUPS[0].re.test(x.name+" "+x.sub+" "+x.code)}),im=thyOn?(state.data.imaging||[]).filter(function(x){return /甲狀腺|thyroid/i.test(x.name+x.text)}):[];
   var imh=im.length?'<div class="card"><h2>甲狀腺相關影像報告</h2>'+im.slice().reverse().map(function(x){return'<p><strong>'+esc(fmtD(x.date))+'　'+esc(x.inst)+'</strong><br>'+esc(x.name)+'</p><pre>'+esc(x.text)+'</pre>'}).join("<hr>")+'</div>':"";
   box.innerHTML='<div class="card"><h2>已選 '+S.length+' 項的曲線</h2><div class="labs">'+charts+'</div><p class="sub" style="margin-top:8px">淺色帶是最近一次的參考值範圍；紅點表示當次超出參考值。<span style="color:var(--good);font-weight:700">↘ 綠色箭頭</span>表示比前一次變好，<span style="color:var(--up);font-weight:700">↗ 橘色箭頭</span>表示比前一次變差（高密度膽固醇、eGFR 這類越高越好的項目，上升才是綠色）。「＜0.005」這類結果以數字部分繪圖。</p></div>'+
-    '<div class="card"><h2>統計表</h2>'+tbl([["項目"],["次數",1],["平均",1],["最低",1],["最高",1],["第一次",1],["最近一次",1],["首末變化",1],["超出參考值次數",1],["參考值"]],st)+'</div>'+
+    '<div class="card"><h2>統計表</h2>'+tbl([["項目"],["趨勢"],["次數",1],["平均",1],["最低",1],["最高",1],["第一次",1],["最近一次",1],["首末變化",1],["超出參考值次數",1],["參考值"],["最近日期"]],st)+'</div>'+
     '<div class="card"><h2>逐次數值對照表</h2><p class="sub">每一列是一個檢驗日期，紅字表示超出參考值。</p>'+tbl([["檢驗日期"]].concat(S.map(function(s){return[s.name,1]})),pv)+'</div>'+imh;
 }
 function renderVisits(d){
@@ -602,7 +818,7 @@ function downloadBlob(name,blob){
 /* ---------- 重點頁：自選重點項目、回診提醒、用藥劑量 ---------- */
 function labCard(s){
   var lp=s.lastp,bad=lp.f==="hi"||lp.f==="lo";
-  return'<div class="lab'+(bad?" flag":"")+'"><div class="top"><div class="name">'+esc(s.name)+'</div><div class="latest">'+esc(lp.raw)+'</div></div>'+
+  return'<div class="lab '+gcls(s)+(bad?" flag":"")+'"><div class="top"><div class="name">'+esc(s.name)+'</div><div class="latest">'+esc(lp.raw)+'</div></div>'+
     '<div class="meta"><span>'+esc(fmtD(lp.date))+'</span>'+pill(lp.f)+(lp.ref?'<span>參考值 '+esc(refText(lp.ref))+'</span>':"")+'<span>共 '+s.pts.length+' 次</span></div>'+
     (s.num.length>=2?spark(s):'<p class="sub">數值少於兩次或為文字結果，無法畫曲線。</p>')+'</div>';
 }
@@ -685,7 +901,18 @@ function load(files){
 var drop=$("drop");
 ["dragenter","dragover"].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.add("over")})});
 ["dragleave","drop"].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.remove("over")})});
-drop.addEventListener("drop",function(ev){load(ev.dataTransfer.files)});
+document.addEventListener("dragover",function(ev){ev.preventDefault()});
+document.addEventListener("drop",function(ev){ev.preventDefault();drop.classList.remove("over");if(ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files.length)load(ev.dataTransfer.files)});
+$("btnRefresh").addEventListener("click",function(){
+  if(!state.data)return;
+  state.data=sortData(state.data);state.selInit=true;state.sel={};
+  labSeries(state.data).forEach(function(x){if(x.num.length>=2)state.sel[x.key]=1});
+  saveSel();render();
+  var n=Object.keys(state.sel).length;
+  [].forEach.call($("tabs").children,function(x){var on=x.dataset.v==="labs";x.setAttribute("aria-selected",on?"true":"false");$("v-"+x.dataset.v).hidden=!on});
+  say((state.sample?"（目前是示範資料）":"")+"已重新整理：共 "+state.series.length+" 項檢驗，畫出 "+n+" 條曲線（只有一次數值或文字結果的項目無法畫曲線）。");
+  var t=$("labSel");if(t&&t.scrollIntoView)t.scrollIntoView({behavior:"smooth",block:"start"});
+});
 $("btnPick").addEventListener("click",function(){$("file").click()});
 $("file").addEventListener("change",function(){load(this.files);this.value=""});
 $("btnImg").addEventListener("click",function(){$("imgFile").click()});
@@ -928,6 +1155,7 @@ $("v-labs").addEventListener("click",function(ev){var b=ev.target.closest("butto
   if(b.id==="expAll")all.forEach(function(x){setRow(x,true)});
   else if(b.id==="expNone")all.forEach(function(x){setRow(x,false)});
   else if(b.classList.contains("grp")){var g=GROUPS[+b.dataset.g];state.sel={};(state.series||[]).forEach(function(x){if(g.re.test(x.name+" "+x.sub+" "+x.code))state.sel[x.key]=1});picks.forEach(function(c){c.checked=!!state.sel[c.dataset.k]});saveSel();renderSel();var t=$("labSel");if(t&&t.scrollIntoView)t.scrollIntoView({behavior:"smooth",block:"start"})}
+  else if(b.classList.contains("stat")){var f=b.dataset.f;state.sel={};(state.series||[]).forEach(function(x){if((x.lastp.f||"")===f)state.sel[x.key]=1});picks.forEach(function(c){c.checked=!!state.sel[c.dataset.k]});saveSel();renderSel();var t2=$("labSel");if(t2&&t2.scrollIntoView)t2.scrollIntoView({behavior:"smooth",block:"start"})}
   else if(b.id==="selAll"||b.id==="selNone"){var on=b.id==="selAll";state.sel={};picks.forEach(function(c){c.checked=on;if(on)state.sel[c.dataset.k]=1});saveSel();renderSel()}});
 $("v-visits").addEventListener("input",function(ev){if(ev.target.id==="q"){state.q=ev.target.value;renderVisits(state.data);var q=$("q");q.focus();q.setSelectionRange(q.value.length,q.value.length)}});
 $("v-visits").addEventListener("change",function(ev){if(ev.target.id==="yearSel"){state.year=ev.target.value;renderVisits(state.data)}});
@@ -973,11 +1201,63 @@ $("btnXlsx").addEventListener("click",function(){
 /* ---------- 深色 / 淺色 ---------- */
 var root=document.documentElement;
 function curTheme(){var t=root.getAttribute("data-theme");if(t==="dark"||t==="light")return t;return window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
-function labelTheme(){$("btnTheme").textContent=curTheme()==="dark"?"切換淺色":"切換深色"}
+function labelTheme(){$("btnTheme").innerHTML=curTheme()==="dark"?'<span class="ic">☀</span>淺色':'<span class="ic">☾</span>深色'}
 try{var st0=localStorage.getItem(KEY+"-theme");if(st0==="dark"||st0==="light")root.setAttribute("data-theme",st0)}catch(e){}
 $("btnTheme").addEventListener("click",function(){var n=curTheme()==="dark"?"light":"dark";root.setAttribute("data-theme",n);try{localStorage.setItem(KEY+"-theme",n)}catch(e){}labelTheme()});
 if(window.MutationObserver)new MutationObserver(labelTheme).observe(root,{attributes:true,attributeFilter:["data-theme"]});
 labelTheme();
+/* ---------- 手機卡片表格：替每格加上欄位名稱 ---------- */
+function labelCells(){[].forEach.call(document.querySelectorAll(".card>.scroll>table>tbody>tr>td:not([data-l])"),function(c){
+  var i=0,p=c;while((p=p.previousElementSibling))i+=p.colSpan||1;
+  var t=c.closest("table"),h=t&&t.tHead&&t.tHead.rows[0],cell=null;
+  if(h){var k=0;for(var j=0;j<h.cells.length;j++){if(k===i){cell=h.cells[j];break}k+=h.cells[j].colSpan||1}}
+  c.setAttribute("data-l",cell?cell.textContent:"")})}
+if(window.MutationObserver){var cellObs=new MutationObserver(labelCells);cellObs.observe(document.body,{childList:true,subtree:true})}
+/* ---------- 密碼鎖與管理介面 ---------- */
+var PW_KEY=KEY+"-pw",PW_SALT="mhb-pw-v1:",PW_DEFAULT="5b66b080f834e9f5da0acf513beaf09c3c312c941edb39aca36cc8f576e3d84b";
+function sha256(str){
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var b=unescape(encodeURIComponent(str)),bytes=[],i;for(i=0;i<b.length;i++)bytes.push(b.charCodeAt(i));
+  var l=bytes.length*8;bytes.push(0x80);while(bytes.length%64!==56)bytes.push(0);
+  for(i=7;i>=0;i--)bytes.push(i>3?0:(l>>>(i*8))&255);
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19],w=new Array(64);
+  var R=function(x,n){return(x>>>n)|(x<<(32-n))};
+  for(var o=0;o<bytes.length;o+=64){
+    for(i=0;i<16;i++)w[i]=(bytes[o+i*4]<<24)|(bytes[o+i*4+1]<<16)|(bytes[o+i*4+2]<<8)|bytes[o+i*4+3];
+    for(i=16;i<64;i++){var s0=R(w[i-15],7)^R(w[i-15],18)^(w[i-15]>>>3),s1=R(w[i-2],17)^R(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0}
+    var a=H[0],c=H[1],d=H[2],e=H[3],f=H[4],g=H[5],h=H[6],k=H[7];
+    for(i=0;i<64;i++){var t1=(k+(R(f,6)^R(f,11)^R(f,25))+((f&g)^(~f&h))+K[i]+w[i])|0,t2=((R(a,2)^R(a,13)^R(a,22))+((a&c)^(a&d)^(c&d)))|0;k=h;h=g;g=f;f=(e+t1)|0;e=d;d=c;c=a;a=(t1+t2)|0}
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+c)|0;H[2]=(H[2]+d)|0;H[3]=(H[3]+e)|0;H[4]=(H[4]+f)|0;H[5]=(H[5]+g)|0;H[6]=(H[6]+h)|0;H[7]=(H[7]+k)|0;
+  }
+  return H.map(function(x){return("00000000"+(x>>>0).toString(16)).slice(-8)}).join("");
+}
+function pwHash(){try{return localStorage.getItem(PW_KEY)||PW_DEFAULT}catch(e){return PW_DEFAULT}}
+function pwOk(p){return sha256(PW_SALT+p)===pwHash()}
+function unlock(){root.classList.remove("locked");try{sessionStorage.setItem(KEY+"-unlocked","1")}catch(e){}}
+function lockNow(){root.classList.add("locked");try{sessionStorage.removeItem(KEY+"-unlocked")}catch(e){}closeAdmin();$("lockPw").value="";$("lockMsg").textContent="";setTimeout(function(){$("lockPw").focus()},50)}
+$("lockForm").addEventListener("submit",function(ev){ev.preventDefault();var p=$("lockPw").value;
+  if(pwOk(p)){$("lockMsg").textContent="";$("lockPw").value="";unlock()}else{$("lockMsg").textContent="密碼不正確，請再試一次。";$("lockPw").select()}});
+$("lockShow").addEventListener("change",function(){$("lockPw").type=this.checked?"text":"password"});
+function openAdmin(){$("admin").hidden=false;$("admMsg").textContent="";$("admMsg").className="adm-msg";["admOld","admNew","admNew2"].forEach(function(i){$(i).value=""});setTimeout(function(){$("admOld").focus()},50)}
+function closeAdmin(){$("admin").hidden=true}
+$("btnAdmin").addEventListener("click",openAdmin);
+$("admClose").addEventListener("click",closeAdmin);
+$("admin").addEventListener("click",function(ev){if(ev.target===this)closeAdmin()});
+document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&!$("admin").hidden)closeAdmin()});
+$("admLock").addEventListener("click",lockNow);
+$("admForm").addEventListener("submit",function(ev){ev.preventDefault();
+  var o=$("admOld").value,n=$("admNew").value,n2=$("admNew2").value,m=$("admMsg");
+  var bad=function(t){m.textContent=t;m.className="adm-msg err"};
+  if(!pwOk(o))return bad("目前密碼不正確。");
+  if(n.length<4)return bad("新密碼至少要 4 個字元。");
+  if(n!==n2)return bad("兩次輸入的新密碼不一樣。");
+  try{localStorage.setItem(PW_KEY,sha256(PW_SALT+n))}catch(e){return bad("這個瀏覽器無法儲存設定，密碼沒有變更。")}
+  ["admOld","admNew","admNew2"].forEach(function(i){$(i).value=""});m.textContent="已變更密碼。只對這台裝置的這個瀏覽器有效。";m.className="adm-msg ok"});
+$("admReset").addEventListener("click",function(){var m=$("admMsg");
+  if(!pwOk($("admOld").value)){m.textContent="要恢復預設密碼，請先在「目前密碼」輸入正確密碼。";m.className="adm-msg err";return}
+  try{localStorage.removeItem(PW_KEY)}catch(e){}$("admOld").value="";m.textContent="已恢復為預設密碼。";m.className="adm-msg ok"});
+var wasOpen=false;try{wasOpen=sessionStorage.getItem(KEY+"-unlocked")==="1"}catch(e){}
+if(wasOpen)unlock();else setTimeout(function(){$("lockPw").focus()},50);
 /* ---------- 啟動 ---------- */
 function boot(s){
   store=fixStore(s)||defaultStore();
