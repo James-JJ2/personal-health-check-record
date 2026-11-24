@@ -43,3 +43,16 @@
 這個 repo 只有程式。**請不要把自己的健康存摺 XML、Excel、資料檔或備份放進這個 repo**（`.gitignore` 已排除 `.xml`、`.xlsx`、`.json`、`.ics`）。沒有資料時畫面顯示的是虛構的示範資料。
 
 本工具只整理資料，不提供醫療判讀。拍照辨識可能認錯字或數字，存入前請核對；檢驗結果請與醫師討論。
+
+## 兩人共享資料（V1.2，GitHub 私人 repo）
+
+程式放在這個公開 repo；**資料另外存在您自己的私人（Private）repo**，外人看不到。
+
+1. GitHub 右上角「+」→ New repository，名稱 `health-data-private`，選 **Private**。
+2. Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token：Repository access 只選 `health-data-private`，Permissions 的 **Contents** 設為 **Read and write**。
+3. 在機器人按「☁ GitHub 共享」，貼上金鑰，按「連線並同步」。另一個人的手機用同一個網址、同一把金鑰做一次即可。
+
+- 每次新增、修改會自動上傳；打開 App 或切回畫面時會自動下載對方的更新。
+- 兩人同時修改時會自動合併，新增的紀錄不會遺失（刪除的紀錄有可能被對方那份補回來）。
+- GitHub 會保留每次存檔的歷史版本。手機遺失時，到 GitHub 刪除那把金鑰即可失效。
+- **不要把資料檔放進這個公開 repo。**

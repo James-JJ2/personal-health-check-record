@@ -351,6 +351,14 @@ header #btnTheme,header #btnRefresh{width:92px;min-height:26px;height:26px;paddi
 header #btnTheme .ic{font-size:12px}
 .ver{font-size:12px;padding:0 8px}
 @media (max-width:600px){header #btnTheme,header #btnRefresh{width:auto;flex:1 1 0}}
+/* ---------- GitHub 共享 ---------- */
+#btnGh{--fc:#24292f;background:var(--fc);color:#fff;border:1px solid var(--fc);font-weight:700;border-radius:8px}
+#btnGh.gh-bad{--fc:var(--crit)}
+.gh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:10px;margin:8px 0}
+.gh-grid label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.gh-grid input{font:inherit;font-size:16px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-height:42px}
+.gh-err{color:var(--crit)!important;font-weight:700}
+#pGh ol{padding-left:1.4em;margin:6px 0}#pGh code{background:var(--bg);padding:0 4px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -383,7 +391,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-24：彩色版面、小趨勢圖、使用者密碼與管理介面">V1.1</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-24：GitHub 私人 repo 共享資料">V1.2</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -397,6 +405,7 @@ header #btnTheme .ic{font-size:12px}
     <button type="button" id="btnFile">連結資料檔</button>
     <button type="button" id="btnBackup">下載備份</button>
     <button type="button" id="btnRestore">讀取備份</button>
+    <button type="button" id="btnGh">☁ GitHub 共享</button>
     <button type="button" id="btnInstall" hidden>安裝成桌面 App</button>
     <input type="file" id="restoreFile" accept=".json,application/json" hidden>
   </div>
@@ -480,6 +489,7 @@ function saveAll(){
   var json=JSON.stringify(store);
   idb.set("store",json).catch(function(){try{localStorage.setItem(KEY,json)}catch(e){}});
   if(fileH&&fileOk){clearTimeout(fileTimer);fileTimer=setTimeout(writeFile,400)}
+  if(typeof ghQueue==="function")ghQueue();
   fileStatus();
 }
 function writeFile(){
@@ -1200,6 +1210,92 @@ $("restoreFile").addEventListener("change",function(){var f=this.files&&this.fil
   f.text().then(function(t){var s=fixStore(JSON.parse(t));if(!s)throw new Error("不是健康記錄機器人的備份檔");
     if(!confirm("讀取備份會用備份裡的資料取代目前所有成員的資料（"+s.people.map(function(p){return p.name}).join("、")+"）。確定？"))return;
     store=s;saveAll();afterStoreChange();say("已讀取備份。")}).catch(function(e){say("讀取備份失敗："+e.message,true)})});
+
+/* ---------- GitHub 私人 repo 共享資料 ---------- */
+var GH_KEY=KEY+"-gh",gh=null,ghTimer=null,ghBusy=false,ghMsg="";
+try{gh=JSON.parse(localStorage.getItem(GH_KEY)||"null")}catch(e){gh=null}
+function ghSave(){try{if(gh)localStorage.setItem(GH_KEY,JSON.stringify(gh));else localStorage.removeItem(GH_KEY)}catch(e){}}
+function ghOn(){return !!(gh&&gh.repo&&gh.token&&gh.path)}
+function ghUrl(){return"https://api.github.com/repos/"+gh.repo.split("/").map(encodeURIComponent).join("/")+"/contents/"+gh.path.split("/").map(encodeURIComponent).join("/")}
+function ghHead(raw){return{"Authorization":"Bearer "+gh.token,"Accept":raw?"application/vnd.github.raw+json":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"}}
+function b64e(t){return btoa(unescape(encodeURIComponent(t)))}
+function b64d(b){return decodeURIComponent(escape(atob(b.replace(/\s/g,""))))}
+function ghErr(r,what){var m={401:"金鑰無效或已過期",403:"金鑰沒有這個 repo 的權限",404:"找不到 repo（名稱打錯，或金鑰沒有權限）"}[r.status]||("HTTP "+r.status);return new Error(what+"失敗："+m)}
+function ghGet(){ /* 回傳 {sha,store} ；檔案不存在回傳 {sha:null,store:null} */
+  return fetch(ghUrl()+"?t="+Date.now(),{headers:ghHead(false),cache:"no-store"}).then(function(r){
+    if(r.status===404)return fetch("https://api.github.com/repos/"+gh.repo,{headers:ghHead(false)}).then(function(r2){if(!r2.ok)throw ghErr(r2,"連線");return{sha:null,store:null}});
+    if(!r.ok)throw ghErr(r,"下載");
+    return r.json().then(function(j){
+      if(j.content)return{sha:j.sha,store:fixStore(JSON.parse(b64d(j.content)))};
+      return fetch(ghUrl()+"?t="+Date.now(),{headers:ghHead(true),cache:"no-store"}).then(function(r3){if(!r3.ok)throw ghErr(r3,"下載");return r3.text()}).then(function(t){return{sha:j.sha,store:fixStore(JSON.parse(t))}});
+    });
+  });
+}
+function ghPut(sha){
+  var body={message:"更新健康記錄 "+new Date().toLocaleString("zh-TW",{hour12:false}),content:b64e(JSON.stringify(store,null,1))};
+  if(sha)body.sha=sha;
+  return fetch(ghUrl(),{method:"PUT",headers:ghHead(false),body:JSON.stringify(body)}).then(function(r){
+    if(r.status===409||r.status===422)return{conflict:true};
+    if(!r.ok)throw ghErr(r,"上傳");
+    return r.json().then(function(j){return{sha:j.content.sha}});
+  });
+}
+function unionArr(a,b){var seen={},out=[];(a||[]).concat(b||[]).forEach(function(x){var k=JSON.stringify(x);if(!seen[k]){seen[k]=1;out.push(x)}});return out}
+function unionStore(loc,rem){ /* 兩邊同時修改時合併：新增的紀錄都保留，不會遺失 */
+  var used={};
+  var people=rem.people.map(function(rp){var lp=null;loc.people.forEach(function(x){if(!lp&&x.id===rp.id)lp=x});if(!lp)loc.people.forEach(function(x){if(!lp&&!used[x.id]&&x.name===rp.name)lp=x});if(!lp)return rp;used[lp.id]=1;
+    var newer=(loc.savedAt||0)>(rem.savedAt||0)?lp:rp;
+    return{id:rp.id,name:newer.name,data:lp.data&&rp.data?sortData(merge(rp.data,lp.data)):(lp.data||rp.data),manual:unionArr(rp.manual,lp.manual),doses:unionArr(rp.doses,lp.doses),pins:unionArr(rp.pins,lp.pins),months:newer.months,sel:lp.sel||rp.sel}});
+  loc.people.forEach(function(lp){if(!used[lp.id])people.push(lp)});
+  var cur=loc.cur;if(!people.some(function(p){return p.id===cur})){var cn="";loc.people.forEach(function(x){if(x.id===loc.cur)cn=x.name});people.forEach(function(p){if(p.name===cn)cur=p.id})}
+  return{version:2,cur:cur,savedAt:Math.max(loc.savedAt||0,rem.savedAt||0)+1,people:people};
+}
+function ghApply(s){var cur=store&&store.cur,cn="";if(store)store.people.forEach(function(x){if(x.id===cur)cn=x.name});store=s;if(cur&&store.people.some(function(p){return p.id===cur}))store.cur=cur;else store.people.forEach(function(p){if(p.name===cn)store.cur=p.id});
+  idb.set("store",JSON.stringify(store)).catch(function(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}});afterStoreChange()}
+function ghStatus(t,err){ghMsg=t||"";var e=$("ghSt");if(e){e.textContent=ghMsg;e.className="sub"+(err?" gh-err":"")}var b=$("btnGh");if(b)b.textContent=ghOn()?(err?"☁ 同步失敗":"☁ GitHub 已連線"):"☁ GitHub 共享";if(b)b.classList.toggle("gh-bad",!!err)}
+function ghSync(reason,retry){ /* 依「上次同步後」雙方是否有變更決定：下載、上傳或合併 */
+  if(!ghOn()||(ghBusy&&!retry))return Promise.resolve();ghBusy=true;if(!retry)ghStatus("同步中…");
+  var done=function(sha){gh.sha=sha;gh.base=store.savedAt||0;ghSave()};
+  return ghGet().then(function(g){
+    var localDirty=(store.savedAt||0)>(gh.base||0);
+    if(!g.store)return ghPut(null).then(function(r){if(r.conflict)throw{retry:1};done(r.sha);return"已在 GitHub 建立資料檔並上傳目前資料"});
+    var remoteChanged=g.sha!==gh.sha;
+    if(!remoteChanged&&!localDirty)return"已是最新";
+    if(remoteChanged&&!localDirty){ghApply(g.store);done(g.sha);return"已下載最新資料"}
+    var merged=remoteChanged;
+    if(merged){var m=unionStore(store,g.store);store=m;idb.set("store",JSON.stringify(store)).catch(function(){});afterStoreChange()}
+    return ghPut(g.sha).then(function(r){if(r.conflict)throw{retry:1};done(r.sha);return merged?"對方也有更新，已合併兩邊的資料並上傳":"已上傳到 GitHub"});
+  }).then(function(t){ghBusy=false;var d=new Date();ghStatus(t+"（"+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)+"）")})
+    .catch(function(e){if(e&&e.retry&&!retry)return ghSync(reason,true);ghBusy=false;ghStatus(e&&e.retry?"對方正在同時修改，請稍後再按「立即同步」":(e.message||String(e)),true)});
+}
+function ghQueue(){if(!ghOn())return;clearTimeout(ghTimer);ghTimer=setTimeout(function(){ghSync("push")},1500)}
+var pGh=document.createElement("section");pGh.className="panel";pGh.id="pGh";pGh.hidden=true;$("filebar").after(pGh);
+function renderGh(){
+  pGh.innerHTML='<h2>☁ GitHub 共享資料</h2>'+
+    '<p class="sub">把資料存在 GitHub 的<strong>私人（Private）repo</strong>，您和太太各自的手機、電腦都看得到同一份資料，一人新增、另一人重新整理就看得到。</p>'+
+    '<div class="gh-grid"><label>私人 repo（帳號/名稱）<input type="text" id="ghRepo" value="'+esc(gh&&gh.repo||"James-JJ2/health-data-private")+'" autocomplete="off" spellcheck="false"></label>'+
+    '<label>資料檔名<input type="text" id="ghPath" value="'+esc(gh&&gh.path||"健康記錄資料.json")+'" autocomplete="off" spellcheck="false"></label>'+
+    '<label>存取金鑰（token）<input type="password" id="ghToken" value="'+esc(gh&&gh.token||"")+'" placeholder="github_pat_…" autocomplete="off" spellcheck="false"></label></div>'+
+    '<div class="row"><button type="button" class="primary" id="ghConnect">'+(ghOn()?"儲存設定並同步":"連線並同步")+'</button>'+(ghOn()?'<button type="button" id="ghNow">立即同步</button><button type="button" id="ghOff">中斷連線（清除這台裝置的金鑰）</button>':"")+'<button type="button" id="ghClose">關閉</button></div>'+
+    '<p class="sub" id="ghSt">'+esc(ghMsg)+'</p>'+
+    '<details><summary class="sub">第一次設定步驟</summary><ol class="sub">'+
+    '<li>到 GitHub 右上角「+」→ New repository，名稱填 <code>health-data-private</code>，選 <strong>Private</strong>，按 Create。</li>'+
+    '<li>到 Settings → Developer settings → Personal access tokens → <strong>Fine-grained tokens</strong> → Generate new token。</li>'+
+    '<li>Repository access 選「Only select repositories」，只勾 <code>health-data-private</code>；Permissions → Repository permissions → <strong>Contents：Read and write</strong>；有效期限建議 1 年。</li>'+
+    '<li>按 Generate，複製 <code>github_pat_</code> 開頭的金鑰，貼到上面欄位，按「連線並同步」。</li>'+
+    '<li>太太的手機用同一個網址、同一把金鑰做一次第 4 步即可。手機遺失時，到 GitHub 刪除這把金鑰就會失效。</li></ol></details>';
+}
+$("btnGh").addEventListener("click",function(){pGh.hidden=!pGh.hidden;if(!pGh.hidden)renderGh()});
+pGh.addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
+  if(b.id==="ghClose"){pGh.hidden=true;return}
+  if(b.id==="ghOff"){if(!confirm("中斷連線會清除這台裝置上的 GitHub 金鑰（GitHub 上的資料不會刪除）。確定？"))return;gh=null;ghSave();ghStatus("已中斷連線，資料只存在這台裝置。");renderGh();return}
+  if(b.id==="ghNow"){ghSync("manual");return}
+  if(b.id==="ghConnect"){var repo=$("ghRepo").value.trim().replace(/^https?:\/\/github\.com\//,"").replace(/\.git$/,"").replace(/\/$/,""),path=$("ghPath").value.trim()||"健康記錄資料.json",tok=$("ghToken").value.trim();
+    if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ghStatus("repo 格式要像「帳號/名稱」，例如 James-JJ2/health-data-private",true);return}
+    if(!tok){ghStatus("請貼上存取金鑰",true);return}
+    gh={repo:repo,path:path,token:tok,sha:null};ghSave();renderGh();ghSync("connect").then(function(){renderGh()})}
+});
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&ghOn()&&!root.classList.contains("locked"))ghSync("pull")});
 var instEv=null;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();instEv=e;$("btnInstall").hidden=false});
 $("btnInstall").addEventListener("click",function(){if(!instEv)return;instEv.prompt();instEv.userChoice.then(function(){instEv=null;$("btnInstall").hidden=true})});
@@ -1293,7 +1389,8 @@ function sha256(str){
 }
 function pwHash(){try{return localStorage.getItem(PW_KEY)||PW_DEFAULT}catch(e){return PW_DEFAULT}}
 function pwOk(p){return sha256(PW_SALT+p)===pwHash()}
-function unlock(){root.classList.remove("locked");try{sessionStorage.setItem(KEY+"-unlocked","1")}catch(e){}}
+function unlock(){root.classList.remove("locked");try{sessionStorage.setItem(KEY+"-unlocked","1")}catch(e){}
+  if(typeof ghSync==="function"&&ghOn())setTimeout(function wait(){if(!store)return setTimeout(wait,300);ghSync("pull")},300)}
 function lockNow(){root.classList.add("locked");try{sessionStorage.removeItem(KEY+"-unlocked")}catch(e){}closeAdmin();$("lockPw").value="";$("lockMsg").textContent="";setTimeout(function(){$("lockPw").focus()},50)}
 $("lockForm").addEventListener("submit",function(ev){ev.preventDefault();var p=$("lockPw").value;
   if(pwOk(p)){$("lockMsg").textContent="";$("lockPw").value="";unlock()}else{$("lockMsg").textContent="密碼不正確，請再試一次。";$("lockPw").select()}});
