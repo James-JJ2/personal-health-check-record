@@ -294,6 +294,15 @@ header select{background:rgba(255,255,255,.95);color:#0f4f53;border:0;border-rad
 .drop{border-radius:12px}
 .drop .actions button{min-height:42px}
 @media (max-width:600px){header{padding-top:62px}.who{width:100%}.who select{flex:1}.drop .actions button{flex:1 1 calc(50% - 8px)}.filebar button{flex:1 1 calc(50% - 8px)}}
+/* ---------- ①②③④ 主要動作列 ---------- */
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.acts button{min-height:44px;font-size:15px}
+.acts .no{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:99px;background:rgba(255,255,255,.28);font-size:13px;margin-right:6px}
+#btnImg{--fc:var(--c2)}
+#btnImg{background:var(--fc);color:#fff;border:1px solid var(--fc);font-weight:700;border-radius:8px;box-shadow:0 2px 6px color-mix(in srgb,var(--fc) 30%,transparent)}
+#btnImg:hover{background:var(--fc);filter:brightness(1.1)}
+.acts #btnXlsx{background:var(--c5);color:#fff;border:1px solid var(--c5)}
+@media (max-width:600px){.acts{width:100%}.acts button{flex:1 1 calc(50% - 8px)}}
 </style>
 </head>
 <body>
@@ -331,7 +340,7 @@ header select{background:rgba(255,255,255,.95);color:#0f4f53;border:0;border-rad
     </div>
     <div class="hbtns">
       <span class="who"><label for="person" class="sub">目前的人</label><select id="person" aria-label="目前的人"></select><button type="button" id="btnPerson">管理成員</button></span>
-      <button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button><button class="primary" id="btnXlsx" type="button">匯出 Excel</button>
+      <button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button>
     </div>
   </header>
 
@@ -349,11 +358,14 @@ header select{background:rgba(255,255,255,.95);color:#0f4f53;border:0;border-rad
     <div class="actions">
       <input type="file" id="file" accept=".xml,.xlsx,text/xml" multiple hidden>
       <input type="file" id="imgFile" accept="image/*" multiple hidden>
-      <button type="button" id="btnPick">匯入健康存摺</button>
-      <button type="button" class="primary" id="btnImg">拍照／截圖匯入</button>
+      <span class="acts">
+      <button type="button" id="btnPick"><span class="no">1</span>匯入資料（XML／Excel）</button>
+      <button type="button" id="btnImg"><span class="no">2</span>匯入照片／截圖</button>
+      <button type="button" id="btnClear"><span class="no">3</span>清除資料</button>
+      <button type="button" id="btnXlsx"><span class="no">4</span>匯出 Excel</button>
+      </span>
       <button type="button" id="btnPaste">貼上文字</button>
       <button type="button" id="btnManual">手動新增</button>
-      <button type="button" id="btnClear">清除這個人的資料</button>
     </div>
   </div>
   <div class="notice" id="msg" hidden></div>

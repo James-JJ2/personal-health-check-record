@@ -250,6 +250,16 @@ html.locked .lock{display:flex;position:fixed;inset:0;z-index:50;align-items:cen
 .adm-msg.err{color:var(--crit);font-weight:700}
 .adm-msg.ok{color:var(--good);font-weight:700}
 @media (max-width:600px){.adm{align-items:flex-end;justify-content:center;padding:10px}.adm-card{width:100%}#btnAdmin{right:12px}}
+/* ---------- ①②③④ 主要動作列 ---------- */
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.acts button{min-height:44px;font-size:15px}
+.acts .no{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:99px;background:rgba(255,255,255,.28);font-size:13px;margin-right:6px}
+#btnImg{--fc:var(--c2)}
+#btnImg{background:var(--fc);color:#fff;border:1px solid var(--fc);font-weight:700;border-radius:8px;box-shadow:0 2px 6px color-mix(in srgb,var(--fc) 30%,transparent)}
+#btnImg:hover{background:var(--fc);filter:brightness(1.1)}
+.acts #btnXlsx{background:var(--c5);color:#fff;border:1px solid var(--c5)}
+@media (max-width:600px){.acts{width:100%}.acts button{flex:1 1 calc(50% - 8px)}}
+.adm-go{display:block;text-align:center;background:var(--c2);color:#fff;border-color:var(--c2);font-weight:700;text-decoration:none;min-height:44px;line-height:28px;border-radius:8px}
 </style>
 </head>
 <body>
@@ -263,6 +273,15 @@ html.locked .lock{display:flex;position:fixed;inset:0;z-index:50;align-items:cen
     <button type="submit" class="lock-go">進入</button>
     <p class="lock-msg" id="lockMsg" role="alert"></p>
   </form>
+</div>
+<div class="adm" id="imgInfo" hidden role="dialog" aria-modal="true" aria-labelledby="imgTitle">
+  <div class="adm-card">
+    <div class="adm-head"><h2 id="imgTitle">匯入照片／截圖</h2><button type="button" id="imgClose" aria-label="關閉">✕</button></div>
+    <p>照片和截圖的文字辨識在「健康記錄機器人」裡：可以拍照、選截圖或按 Ctrl+V 貼上，辨識後逐列核對才存入，辨識程式和繁中字庫都在本機，iPhone 也能用。</p>
+    <p class="sub">這個單檔工具用 Chrome 直接開啟時，瀏覽器不允許執行文字辨識，所以照片匯入請改用健康記錄機器人。</p>
+    <a class="btn adm-go" href="https://james-jj2.github.io/personal-health-check-record/" target="_blank" rel="noopener">開啟健康記錄機器人</a>
+    <p class="sub">網址：https://james-jj2.github.io/personal-health-check-record/</p>
+  </div>
 </div>
 <button type="button" id="btnAdmin" aria-label="開啟管理介面">⚙ 管理</button>
 <div class="adm" id="admin" hidden role="dialog" aria-modal="true" aria-labelledby="admTitle">
@@ -285,7 +304,7 @@ html.locked .lock{display:flex;position:fixed;inset:0;z-index:50;align-items:cen
       <h1>健康存摺統計工具<span class="ver" title="2026-11-24 發布：加入使用者密碼與管理介面">V1.1</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine">匯入健保署「健康存摺」下載的 XML 檔，自動整理就醫、用藥與檢驗統計。</p>
     </div>
-    <div class="hbtns"><button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button><button class="primary" id="btnXlsx" type="button">匯出 Excel</button></div>
+    <div class="hbtns"><button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button></div>
   </header>
 
   <div class="notice" id="msg" hidden></div>
@@ -299,8 +318,12 @@ html.locked .lock{display:flex;position:fixed;inset:0;z-index:50;align-items:cen
     <button role="tab" type="button" data-v="other" aria-selected="false">疫苗與影像</button>
   </nav><div class="drop" id="drop" title="也可以直接把健康存摺 XML 或統計 Excel 檔拖進頁面；資料只在你的瀏覽器裡處理，不會上傳">
       <input type="file" id="file" accept=".xml,.xlsx,text/xml" multiple hidden>
-      <button type="button" id="btnPick">選擇檔案</button>
-      <button type="button" id="btnClear">清除資料</button>
+      <span class="acts">
+      <button type="button" id="btnPick"><span class="no">1</span>匯入資料（XML／Excel）</button>
+      <button type="button" id="btnImg"><span class="no">2</span>匯入照片／截圖</button>
+      <button type="button" id="btnClear"><span class="no">3</span>清除資料</button>
+      <button type="button" id="btnXlsx"><span class="no">4</span>匯出 Excel</button>
+      </span>
       <label class="chk" for="remember"><input type="checkbox" id="remember"> 保留在瀏覽器</label>
     </div></div>
 
@@ -685,6 +708,9 @@ document.addEventListener("dragover",function(ev){ev.preventDefault();drop.class
 document.addEventListener("dragleave",function(ev){if(!ev.relatedTarget)drop.classList.remove("over")});
 document.addEventListener("drop",function(ev){ev.preventDefault();drop.classList.remove("over");if(ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files.length)load(ev.dataTransfer.files)});
 $("btnPick").addEventListener("click",function(){$("file").click()});
+$("btnImg").addEventListener("click",function(){$("imgInfo").hidden=false});
+$("imgClose").addEventListener("click",function(){$("imgInfo").hidden=true});
+$("imgInfo").addEventListener("click",function(ev){if(ev.target===this)this.hidden=true});
 $("btnRefresh").addEventListener("click",function(){
   if(!state.data)return;
   state.data=sortData(state.data);state.selInit=true;state.sel={};
