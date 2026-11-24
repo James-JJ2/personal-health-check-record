@@ -260,6 +260,13 @@ html.locked .lock{display:flex;position:fixed;inset:0;z-index:50;align-items:cen
 .acts #btnXlsx{background:var(--c5);color:#fff;border:1px solid var(--c5)}
 @media (max-width:600px){.acts{width:100%}.acts button{flex:1 1 calc(50% - 8px)}}
 .adm-go{display:block;text-align:center;background:var(--c2);color:#fff;border-color:var(--c2);font-weight:700;text-decoration:none;min-height:44px;line-height:28px;border-radius:8px}
+/* ---------- 標題列按鈕靠右對齊 ---------- */
+header{align-items:center;padding-right:24px}
+header .hbtns{margin-left:auto;justify-content:flex-end;align-items:center;gap:10px}
+#btnTheme{position:static;order:9;min-height:34px;padding:4px 12px;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+#btnTheme .ic{font-size:14px}
+header #btnRefresh{order:8;min-height:40px;padding:6px 16px;font-size:15px}
+@media (max-width:600px){header{padding-top:16px;padding-right:16px}header .hbtns{width:100%}header #btnRefresh{flex:1 1 auto}}
 </style>
 </head>
 <body>

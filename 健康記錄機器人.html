@@ -303,6 +303,13 @@ header select{background:rgba(255,255,255,.95);color:#0f4f53;border:0;border-rad
 #btnImg:hover{background:var(--fc);filter:brightness(1.1)}
 .acts #btnXlsx{background:var(--c5);color:#fff;border:1px solid var(--c5)}
 @media (max-width:600px){.acts{width:100%}.acts button{flex:1 1 calc(50% - 8px)}}
+/* ---------- 標題列按鈕靠右對齊 ---------- */
+header{align-items:center;padding-right:24px}
+header .hbtns{margin-left:auto;justify-content:flex-end;align-items:center;gap:10px}
+#btnTheme{position:static;order:9;min-height:34px;padding:4px 12px;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+#btnTheme .ic{font-size:14px}
+header #btnRefresh{order:8;min-height:40px;padding:6px 16px;font-size:15px}
+@media (max-width:600px){header{padding-top:16px;padding-right:16px}header .hbtns{width:100%}header #btnRefresh{flex:1 1 auto}}
 </style>
 </head>
 <body>
