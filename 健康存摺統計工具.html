@@ -274,6 +274,31 @@ header #btnTheme{order:1;display:flex}
 header #btnRefresh{order:2}
 header .who{order:0;justify-content:flex-end}
 @media (max-width:600px){header .hbtns{flex-direction:row;width:100%}header #btnTheme,header #btnRefresh{flex:1 1 0;width:auto}header .who{flex:1 1 100%}}
+/* ---------- 隨頁寬自動縮放，最小為手機寬度 ---------- */
+*{min-width:0}
+html{-webkit-text-size-adjust:100%}
+body{min-width:360px;overflow-x:auto;font-size:clamp(14px,0.35vw + 12px,17px)}
+.wrap{max-width:min(1600px,100%);width:100%;padding-left:clamp(10px,2vw,32px);padding-right:clamp(10px,2vw,32px);gap:clamp(12px,1.4vw,22px)}
+h1{font-size:clamp(22px,1.6vw + 14px,36px)}
+header{padding:clamp(14px,1.6vw,26px) clamp(14px,2vw,30px)}
+header #btnTheme,header #btnRefresh{width:clamp(130px,10vw + 40px,190px);min-height:clamp(38px,1vw + 30px,46px);font-size:clamp(13px,0.4vw + 11px,16px)}
+.tabrow nav{flex:1 1 100%}
+nav button{font-size:clamp(13px,0.4vw + 11px,17px);padding:clamp(5px,0.5vw,9px) clamp(10px,1vw,18px)}
+.tabrow .drop{flex:1 1 100%}
+.acts{flex:1 1 auto}
+.acts button{flex:1 1 auto;white-space:normal;font-size:clamp(13px,0.45vw + 11px,17px);min-height:clamp(40px,1vw + 32px,50px);padding:6px clamp(10px,1vw,18px)}
+.tabrow .drop label.chk{flex:0 1 auto;white-space:normal}
+.tiles{grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}
+.tile .v{font-size:clamp(20px,1.2vw + 12px,32px)}
+.stats{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+button.stat .sn{font-size:clamp(22px,1.2vw + 14px,34px)}
+.card{padding:clamp(10px,1.2vw,20px)}
+table{font-size:clamp(13px,0.3vw + 11.5px,16px)}
+.labs{grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))}
+@media (max-width:600px){.acts button{flex:1 1 calc(50% - 8px)}.tabrow .drop label.chk{flex:1 1 100%}}
+@media (max-width:700px){.acts{flex:1 1 100%;width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.acts button{width:100%}}
+.tabrow .drop .acts button,.drop .acts .acts button{white-space:normal;line-height:1.25}
+.acts #btnImg,.drop .actions>button{font-size:clamp(13px,0.45vw + 11px,17px);padding:6px clamp(10px,1vw,18px);min-height:clamp(40px,1vw + 32px,50px)}
 </style>
 </head>
 <body>
