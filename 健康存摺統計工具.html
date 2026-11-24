@@ -299,6 +299,15 @@ table{font-size:clamp(13px,0.3vw + 11.5px,16px)}
 @media (max-width:700px){.acts{flex:1 1 100%;width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.acts button{width:100%}}
 .tabrow .drop .acts button,.drop .acts .acts button{white-space:normal;line-height:1.25}
 .acts #btnImg,.drop .actions>button{font-size:clamp(13px,0.45vw + 11px,17px);padding:6px clamp(10px,1vw,18px);min-height:clamp(40px,1vw + 32px,50px)}
+/* ---------- 標題列上下縮小、右側兩鍵縮小（約原面積 25%） ---------- */
+header{padding:clamp(8px,0.8vw,14px) clamp(14px,1.6vw,26px);gap:8px 16px;border-radius:12px}
+h1{font-size:clamp(20px,1.1vw + 13px,30px);line-height:1.2}
+header .sub{margin:0;font-size:clamp(12px,0.2vw + 11px,14px)}
+header .hbtns{gap:4px}
+header #btnTheme,header #btnRefresh{width:92px;min-height:26px;height:26px;padding:0 8px;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+header #btnTheme .ic{font-size:12px}
+.ver{font-size:12px;padding:0 8px}
+@media (max-width:600px){header #btnTheme,header #btnRefresh{width:auto;flex:1 1 0}}
 </style>
 </head>
 <body>
