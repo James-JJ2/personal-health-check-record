@@ -3,9 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>健康存摺統計工具</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+<title>健康記錄機器人</title>
+<meta name="theme-color" content="#0f6e73">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
 /* 版面：頂部匯入列 → 分頁 → 摘要數字在前、明細表在後；單欄，最寬 1120px */
 :root{
@@ -97,6 +99,31 @@ input.pick{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
 label[for^=pick]{cursor:pointer}
 .labs .lab{background:var(--bg)}
 .view{display:flex;flex-direction:column;gap:14px}
+.who{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.who select{font-weight:700}
+.filebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.filebar .st{flex:1 1 240px}
+.filebar .st strong{color:var(--ink)}
+.panel{background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.panel[hidden]{display:none}
+.panel .row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.panel textarea{font:inherit;width:100%;min-height:120px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.panel input[type=text],.panel input[type=date],.panel input[type=number]{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+.rv td{vertical-align:middle}
+.rv input[type=text]{width:100%}
+.rv td.c-v input{width:90px;text-align:right}
+.rv td.c-u input{width:80px}
+.rv td.c-r input{width:110px}
+.thumb{max-height:160px;max-width:100%;border:1px solid var(--line);border-radius:6px}
+.prog{height:8px;background:var(--accent-soft);border-radius:4px;overflow:hidden}
+.prog>div{height:8px;background:var(--accent);width:0}
+.remind{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.remind .big{font-size:22px;font-weight:700}
+.remind.due{border-left:4px solid var(--crit)}
+.pill.src{color:var(--accent)}
+button.del{padding:0 6px;font-size:12px;color:var(--crit)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips label{display:flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:13px;cursor:pointer}
 .sample{display:inline-block;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);font-size:12px;padding:0 8px;border-radius:4px;margin-left:8px;vertical-align:middle;font-family:var(--body);font-weight:500}
 </style>
 </head>
@@ -104,25 +131,44 @@ label[for^=pick]{cursor:pointer}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康存摺統計工具<span class="sample" id="sampleTag">示範資料</span></h1>
-      <p class="sub" id="metaLine">匯入健保署「健康存摺」下載的 XML 檔，自動整理就醫、用藥與檢驗統計。</p>
+      <h1>健康記錄機器人<span class="sample" id="sampleTag">示範資料</span></h1>
+      <p class="sub" id="metaLine"></p>
     </div>
-    <div class="hbtns"><button id="btnTheme" type="button">切換深色</button><button class="primary" id="btnXlsx" type="button">匯出 Excel</button></div>
+    <div class="hbtns">
+      <span class="who"><label for="person" class="sub">目前的人</label><select id="person" aria-label="目前的人"></select><button type="button" id="btnPerson">管理成員</button></span>
+      <button id="btnTheme" type="button">切換深色</button><button class="primary" id="btnXlsx" type="button">匯出 Excel</button>
+    </div>
   </header>
 
+  <div class="filebar card" id="filebar">
+    <span class="st" id="fileSt"></span>
+    <button type="button" id="btnFile">連結資料檔</button>
+    <button type="button" id="btnBackup">下載備份</button>
+    <button type="button" id="btnRestore">讀取備份</button>
+    <button type="button" id="btnInstall" hidden>安裝成桌面 App</button>
+    <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+  </div>
+
   <div class="drop" id="drop">
-    <p><strong>把健康存摺 XML 檔拖到這裡</strong>，或按右邊按鈕選檔。也可以匯入本工具產生的統計 Excel（.xlsx）。可一次選多個檔案，重複的紀錄會自動合併。資料只在你的瀏覽器裡處理，不會上傳。</p>
+    <p><strong>把健康存摺 XML 檔、統計 Excel，或報告的截圖／照片拖到這裡</strong>。截圖和照片會自動辨識文字，核對後才存入。資料只在這台電腦處理，不會上傳。</p>
     <div class="actions">
       <input type="file" id="file" accept=".xml,.xlsx,text/xml" multiple hidden>
-      <button type="button" id="btnPick">選擇檔案</button>
-      <button type="button" id="btnClear">清除資料</button>
-      <label class="chk" for="remember"><input type="checkbox" id="remember"> 保留在這個瀏覽器，下次自動載入</label>
+      <input type="file" id="imgFile" accept="image/*" multiple hidden>
+      <button type="button" id="btnPick">匯入健康存摺</button>
+      <button type="button" class="primary" id="btnImg">拍照／截圖匯入</button>
+      <button type="button" id="btnPaste">貼上文字</button>
+      <button type="button" id="btnManual">手動新增</button>
+      <button type="button" id="btnClear">清除這個人的資料</button>
     </div>
   </div>
   <div class="notice" id="msg" hidden></div>
 
+  <section class="panel" id="pPerson" hidden></section>
+  <section class="panel" id="pImport" hidden></section>
+
   <nav role="tablist" id="tabs">
-    <button role="tab" type="button" data-v="overview" aria-selected="true">總覽</button>
+    <button role="tab" type="button" data-v="focus" aria-selected="true">重點</button>
+    <button role="tab" type="button" data-v="overview" aria-selected="false">總覽</button>
     <button role="tab" type="button" data-v="labs" aria-selected="false">檢驗趨勢</button>
     <button role="tab" type="button" data-v="visits" aria-selected="false">門診紀錄</button>
     <button role="tab" type="button" data-v="meds" aria-selected="false">用藥</button>
@@ -130,7 +176,8 @@ label[for^=pick]{cursor:pointer}
     <button role="tab" type="button" data-v="other" aria-selected="false">疫苗與影像</button>
   </nav>
 
-  <section class="view" id="v-overview"></section>
+  <section class="view" id="v-focus"></section>
+  <section class="view" id="v-overview" hidden></section>
   <section class="view" id="v-labs" hidden></section>
   <section class="view" id="v-visits" hidden></section>
   <section class="view" id="v-meds" hidden></section>
@@ -138,21 +185,83 @@ label[for^=pick]{cursor:pointer}
   <section class="view" id="v-other" hidden></section>
 
   <footer>
-    欄位名稱（部分負擔、健保點數等）是依健康存摺 XML 的內容推定，請以健康存摺 App 顯示為準。同一次就醫常被拆成看診、檢驗、藥局調劑多筆紀錄，所以另外以「日期＋院所」計算就醫次數。本工具只整理資料，不提供醫療判讀；檢驗結果請與醫師討論。
+    欄位名稱（部分負擔、健保點數等）是依健康存摺 XML 的內容推定，請以健康存摺 App 顯示為準。同一次就醫常被拆成看診、檢驗、藥局調劑多筆紀錄，所以另外以「日期＋院所」計算就醫次數。拍照辨識可能認錯字或數字，存入前請逐列核對。本工具只整理資料，不提供醫療判讀；檢驗結果請與醫師討論。
   </footer>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="lib/xlsx.full.min.js"></script>
 <script>
 (function(){
 "use strict";
-var KEY="mhb-stats-v1";
+var KEY="health-robot-v2";
 var $=function(id){return document.getElementById(id)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
 var fmtD=function(s){return /^\d{8}$/.test(s||"")?s.slice(0,4)+"-"+s.slice(4,6)+"-"+s.slice(6):(s||"")};
 var nf=function(n){return (n||0).toLocaleString("zh-TW")};
 var toNum=function(s){var n=parseFloat(s);return isFinite(n)?n:0};
 var state={data:null,sample:true,q:"",year:"",sel:{},selInit:false,series:[]};
+var store=null; /* {version,cur,savedAt,people:[{id,name,data,manual,doses,pins,months,sel}]} */
+var uid=function(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
+var today=function(){var d=new Date();return d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)};
+function newPerson(name,pins){return{id:uid(),name:name,data:null,manual:[],doses:[],pins:pins||[],months:3,sel:null}}
+function defaultStore(){var a=newPerson("我",["甲狀腺"]),b=newPerson("太太",[]);return{version:2,cur:a.id,savedAt:0,people:[a,b]}}
+function person(){var p=null;store.people.forEach(function(x){if(x.id===store.cur)p=x});return p||store.people[0]}
+function fixStore(s){
+  if(!s||!s.people||!s.people.length)return null;
+  s.people.forEach(function(p){p.id=p.id||uid();p.name=p.name||"未命名";p.manual=p.manual||[];p.doses=p.doses||[];p.pins=p.pins||[];p.months=p.months||3});
+  if(!s.people.some(function(p){return p.id===s.cur}))s.cur=s.people[0].id;s.version=2;return s;
+}
+
+/* ---------- 本機儲存：IndexedDB（瀏覽器內）＋ 資料檔（可放在雲端同步資料夾） ---------- */
+var idb=(function(){var dbp=null;
+  function db(){if(!dbp)dbp=new Promise(function(res,rej){if(!window.indexedDB)return rej(new Error("no idb"));var r=indexedDB.open("health-robot",1);r.onupgradeneeded=function(){r.result.createObjectStore("kv")};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}});return dbp}
+  function op(mode,fn){return db().then(function(d){return new Promise(function(res,rej){var t=d.transaction("kv",mode),q=fn(t.objectStore("kv"));t.oncomplete=function(){res(q&&q.result)};t.onerror=function(){rej(t.error)}})})}
+  return{get:function(k){return op("readonly",function(s){return s.get(k)})},set:function(k,v){return op("readwrite",function(s){return s.put(v,k)})},del:function(k){return op("readwrite",function(s){return s.delete(k)})}};
+})();
+var fileH=null,fileOk=false,fileTimer=null,fileErr="";
+var hasFS=!!(window.showSaveFilePicker&&window.showOpenFilePicker);
+function saveAll(){
+  store.savedAt=Date.now();
+  var json=JSON.stringify(store);
+  idb.set("store",json).catch(function(){try{localStorage.setItem(KEY,json)}catch(e){}});
+  if(fileH&&fileOk){clearTimeout(fileTimer);fileTimer=setTimeout(writeFile,400)}
+  fileStatus();
+}
+function writeFile(){
+  if(!fileH)return Promise.resolve();
+  return fileH.createWritable().then(function(w){return w.write(JSON.stringify(store,null,1)).then(function(){return w.close()})})
+    .then(function(){fileErr="";fileStatus()}).catch(function(e){fileErr="寫入資料檔失敗（"+(e&&e.message||e)+"）";fileStatus()});
+}
+function readHandle(h){return h.getFile().then(function(f){return f.text()}).then(function(t){return t.trim()?fixStore(JSON.parse(t)):null})}
+function adoptHandle(h,mode){ /* mode: open = 以檔案為準；create = 用目前資料寫入；auto = 新的那份為準 */
+  fileH=h;fileOk=true;idb.set("fileHandle",h).catch(function(){});
+  if(mode==="create")return writeFile().then(function(){say("已建立資料檔「"+h.name+"」，之後每次變更都會自動存檔。")});
+  return readHandle(h).then(function(s){
+    if(s&&(mode==="open"||(s.savedAt||0)>(store.savedAt||0))){store=s;afterStoreChange();idb.set("store",JSON.stringify(store)).catch(function(){});if(mode==="open")say("已開啟資料檔「"+h.name+"」。")}
+    else writeFile();
+    fileStatus();
+  }).catch(function(e){say("無法讀取資料檔："+e.message,true)});
+}
+function fileStatus(){
+  var st=$("fileSt");if(!st)return;
+  var n=store.people.length,names=store.people.map(function(p){return p.name}).join("、");
+  if(fileH&&fileOk)st.innerHTML='資料檔：<strong>'+esc(fileH.name)+'</strong>，變更會自動存檔。'+(fileErr?' <span style="color:var(--crit)">'+esc(fileErr)+'</span>':"");
+  else if(fileH)st.innerHTML='上次用的資料檔是 <strong>'+esc(fileH.name)+'</strong>，按「重新連結」繼續自動存檔。';
+  else if(hasFS)st.innerHTML='資料目前只存在這個瀏覽器（'+n+' 位成員：'+esc(names)+'）。按「連結資料檔」存成檔案，放在 iCloud、Google 雲端硬碟或 OneDrive 的資料夾，兩台電腦就能共用。';
+  else st.innerHTML='資料存在這個瀏覽器（'+n+' 位成員：'+esc(names)+'）。這個瀏覽器不支援自動存檔到檔案，要換電腦時請用「下載備份」→ 另一台「讀取備份」。';
+  $("btnFile").hidden=!hasFS;$("btnFile").textContent=fileH&&!fileOk?"重新連結":fileH?"更換資料檔":"連結資料檔";
+}
+function afterStoreChange(){state.selInit=false;state.q="";state.year="";refreshData();renderPersons();render()}
+
+/* 把手動／拍照紀錄併入檢驗資料 */
+function refreshData(){
+  var p=person(),has=!!(p.data||p.manual.length);
+  state.sample=!has;
+  if(!has){state.data=sampleData();return}
+  var b=p.data||{meta:{},visits:[],dental:[],vacc:[],labs:[],imaging:[]};
+  var labs=b.labs.concat(p.manual.map(function(m){return{visit:m.date,date:m.date,up:"M"+m.id,inst:m.inst||"",code:"",order:"",item:m.name,result:m.value+"",ref:m.ref||"",key:m.key,mid:m.id,src:m.src,unit:m.unit||""}}));
+  state.data={meta:b.meta,visits:b.visits,dental:b.dental,vacc:b.vacc,imaging:b.imaging,labs:labs.sort(function(x,y){return x.date<y.date?-1:x.date>y.date?1:0})};
+}
 var dl=null;
 if(window.claude&&window.claude.use){window.claude.use("downloads").then(function(x){dl=x}).catch(function(){})}
 
@@ -240,6 +349,9 @@ function sampleData(){
     [["09006C","醣化血紅素","HbA1C",a1c[i],"[4][6]"],["09044C","低密度脂蛋白－膽固醇","L.D.L.",ldl[i],"[0][129]"],["09005C","血液及體液葡萄糖-空腹","Sugar AC",glu[i],"[70][99]"]].forEach(function(r){
       d.labs.push({visit:dt,date:dt,up:dt+"0900",inst:"示範醫院",code:r[0],order:r[1],item:r[2],result:String(r[3]),ref:r[4]});
     });
+    if(i%2===0){var tsh=[5.8,4.6,3.1,2.4,2.1][i/2],ft4=[0.82,0.95,1.08,1.15,1.21][i/2];
+      d.labs.push({visit:dt,date:dt,up:dt+"0900",inst:"示範醫院",code:"09112C",order:"甲狀腺刺激素免疫分析",item:"TSH",result:String(tsh),ref:"[0.27][4.2]"});
+      d.labs.push({visit:dt,date:dt,up:dt+"0900",inst:"示範醫院",code:"09106C",order:"游離甲狀腺素免疫分析",item:"Free T4",result:String(ft4),ref:"[0.93][1.7]"});}
   });
   [["20240520","J069","急性上呼吸道感染",215],["20250115","J209","急性支氣管炎",347],["20251103","J069","急性上呼吸道感染",275]].forEach(function(r){
     d.visits.push({date:r[0],rx:"",inst:"示範診所",instId:"0000000002",seq:"0101",dx:r[1],dxName:r[2],sec:[],copay:50,pts:r[3],items:[{code:"AC00000300",name:"示範止咳錠 20 毫克",qty:9,days:3},{code:"A000000400",name:"示範退燒止痛錠 500 毫克",qty:9,days:3}]});
@@ -286,7 +398,7 @@ function parseRef(s){
   var isN=function(x){return x!==""&&isFinite(+x)};
   if(isN(a)&&isN(b))return{lo:+a,hi:+b};
   if((r=/^(-?[\d.]+)\s*[-~～–]\s*(-?[\d.]+)$/.exec(a)))return{lo:+r[1],hi:+r[2]};
-  if((r=/^(?:小於|<=?|＜|≦)\s*([\d.]+)$/.exec(a)))return{hi:+r[1]};
+  if((r=/^(?:小於|<=?|＜|≦|≤)\s*([\d.]+)$/.exec(a)))return{hi:+r[1]};
   if((r=/^(?:大於|>=?|＞|≧|≥)\s*([\d.]+)$/.exec(a)))return{lo:+r[1]};
   return null;
 }
@@ -295,15 +407,23 @@ function parseVal(s){var m=/^([<＜>＞]?)\s*(-?\d+(?:\.\d+)?)$/.exec((s||"").tr
 function flag(v,r){if(v==null||!r)return"";if(r.lo!=null&&v<r.lo)return"lo";if(r.hi!=null&&v>r.hi)return"hi";return"ok"}
 function labSeries(d){
   var cnt={},multi={};
-  d.labs.forEach(function(l){var k=l.code+"|"+l.visit+"|"+l.up;cnt[k]=(cnt[k]||0)+1;if(cnt[k]>1)multi[l.code]=1});
+  d.labs.forEach(function(l){if(l.mid)return;var k=l.code+"|"+l.visit+"|"+l.up;cnt[k]=(cnt[k]||0)+1;if(cnt[k]>1)multi[l.code]=1});
   var s={};
   d.labs.forEach(function(l){
+    if(l.mid)return;
     var comp=multi[l.code]||!l.order,key=comp?l.code+"|"+l.item.replace(/\s+/g," ").toUpperCase():l.code;
     var r=s[key]||(s[key]={key:key,code:l.code,name:comp?l.item:l.order,sub:comp?l.order:l.item,pts:[]});
     var ref=parseRef(l.ref),v=parseVal(l.result);
     r.pts.push({date:l.date,raw:l.result,v:v,ref:ref,f:flag(v,ref),inst:l.inst});
   });
-  return Object.keys(s).map(function(k){var r=s[k];r.num=r.pts.filter(function(p){return p.v!=null});r.lastp=r.pts[r.pts.length-1];return r})
+  d.labs.forEach(function(l){ /* 手動、拍照紀錄：依對應的項目 key 併入 */
+    if(!l.mid)return;
+    var r=s[l.key]||(s[l.key]={key:l.key,code:"",name:l.item,sub:l.unit?l.unit:"",pts:[]});
+    var ref=parseRef(l.ref),v=parseVal(l.result);
+    if(!ref){for(var i=r.pts.length-1;i>=0&&!ref;i--)ref=r.pts[i].ref}
+    r.pts.push({date:l.date,raw:l.result,v:v,ref:ref,f:flag(v,ref),inst:l.inst,mid:l.mid,src:l.src});
+  });
+  return Object.keys(s).map(function(k){var r=s[k];r.pts.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});r.num=r.pts.filter(function(p){return p.v!=null});r.lastp=r.pts[r.pts.length-1];return r})
     .sort(function(a,b){return b.pts.length-a.pts.length});
 }
 
@@ -390,17 +510,17 @@ function noResultCard(d){
     tbl([["項目"],["代碼"],["開立次數",1],["開立日期"],["院所"]],L.map(function(r){return'<tr><td style="white-space:normal"><strong>'+esc(r.name)+'</strong>'+(thy.test(r.name+r.code)?' <span class="pill ok">甲狀腺</span>':"")+'</td><td>'+esc(r.code)+'</td><td class="num">'+r.dates.length+'</td><td style="white-space:normal">'+r.dates.map(fmtD).map(esc).join("、")+'</td><td>'+esc(Object.keys(r.inst).join("、"))+'</td></tr>'}).join(""))+'</div>';
 }
 function selKeys(S){return S.filter(function(x){return state.sel[x.key]})}
-function saveSel(){try{localStorage.setItem(KEY+"-sel",JSON.stringify(Object.keys(state.sel)))}catch(e){}}
+function saveSel(){if(state.sample)return;person().sel=Object.keys(state.sel);saveAll()}
 function avgOf(vs){return vs.length?+(vs.reduce(function(a,b){return a+b},0)/vs.length).toFixed(3):""}
 function renderLabs(d){
   var S=labSeries(d);state.series=S;
   if(!S.length){$("v-labs").innerHTML='<div class="card"><p class="sub">這份資料沒有檢驗結果。</p></div>';return}
-  if(!state.selInit){state.selInit=true;var keep=null;try{keep=JSON.parse(localStorage.getItem(KEY+"-sel")||"null")}catch(e){}
+  if(!state.selInit){state.selInit=true;var keep=state.sample?null:person().sel;
     state.sel={};if(keep&&!state.sample)keep.forEach(function(k){state.sel[k]=1});
     if(!selKeys(S).length)S.filter(function(x){return x.num.length>=2}).slice(0,3).forEach(function(x){state.sel[x.key]=1})}
   var rows=S.map(function(s,i){
     var p=s.lastp,vs=s.num.map(function(q){return q.v}),bad=p.f==="hi"||p.f==="lo";
-    var det=s.pts.slice().reverse().map(function(q){return'<tr><td>'+esc(fmtD(q.date))+'</td><td class="num"><strong>'+esc(q.raw)+'</strong></td><td>'+pill(q.f)+'</td><td>'+esc(refText(q.ref))+'</td><td>'+esc(q.inst)+'</td></tr>'}).join("");
+    var det=s.pts.slice().reverse().map(function(q){return'<tr><td>'+esc(fmtD(q.date))+'</td><td class="num"><strong>'+esc(q.raw)+'</strong></td><td>'+pill(q.f)+'</td><td>'+esc(refText(q.ref))+'</td><td>'+esc(q.inst)+(q.mid?' <span class="pill src">'+(SRC[q.src]||"手動")+'</span> <button type="button" class="del" data-mid="'+esc(q.mid)+'">刪除</button>':"")+'</td></tr>'}).join("");
     return'<tr'+(bad?' class="bad"':"")+'><td><input type="checkbox" class="pick" id="pick'+i+'" data-k="'+esc(s.key)+'"'+(state.sel[s.key]?" checked":"")+' aria-label="選取 '+esc(s.name)+'"></td>'+
       '<td><button class="exp" type="button" data-i="'+i+'" aria-expanded="false" aria-label="展開每次數值">＋</button></td>'+
       '<td><label for="pick'+i+'"><strong>'+esc(s.name)+'</strong></label>'+(s.sub&&s.sub!==s.name&&s.sub.length<24?' <span style="color:var(--muted)">'+esc(s.sub)+'</span>':"")+'</td><td>'+esc(s.code)+'</td>'+
@@ -465,22 +585,101 @@ function renderOther(d){
   $("v-other").innerHTML=h;
 }
 function render(){
-  var d=state.data;
+  var d=state.data,p=person();
   $("sampleTag").hidden=!state.sample;
-  $("metaLine").textContent=state.sample?"目前顯示的是虛構的示範資料。匯入你的健康存摺 XML 檔或統計 Excel 後會換成你的統計。":"身分證號 "+(d.meta.id||"-")+"・資料下載日 "+(fmtD(d.meta.dl)||"-");
-  renderOverview(d);renderLabs(d);renderVisits(d);renderMeds(d);renderDental(d);renderOther(d);
+  $("metaLine").textContent=state.sample?"「"+p.name+"」還沒有資料，下面是虛構的示範資料。匯入健康存摺，或用拍照／截圖匯入報告後，就會換成"+p.name+"的紀錄。"
+    :p.name+(p.data?"・身分證號 "+(p.data.meta.id||"-")+"・健康存摺下載日 "+(fmtD(p.data.meta.dl)||"-"):"")+"・自行紀錄 "+p.manual.length+" 筆";
+  renderOverview(d);renderLabs(d);renderFocus(d);renderVisits(d);renderMeds(d);renderDental(d);renderOther(d);
 }
 function say(t,err){var m=$("msg");m.textContent=t||"";m.hidden=!t;m.className="notice"+(err?" err":"")}
+var SRC={photo:"拍照",paste:"貼上",manual:"手動"};
+function downloadBlob(name,blob){
+  if(dl){return dl.save({filename:name,data:blob}).then(function(){say("已下載 "+name)}).catch(function(e){if(!e||e.code!=="declined")say("這個檢視畫面無法下載檔案。請把本工具下載後用瀏覽器開啟。",true)})}
+  if(window.claude){say("這個檢視畫面無法下載檔案。請把本工具下載後用瀏覽器開啟。",true);return}
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000);say("已下載 "+name);
+}
 
-/* ---------- 匯入 ---------- */
-function persist(){try{if($("remember").checked&&!state.sample)localStorage.setItem(KEY,JSON.stringify(state.data));else localStorage.removeItem(KEY)}catch(e){}}
+/* ---------- 重點頁：自選重點項目、回診提醒、用藥劑量 ---------- */
+function labCard(s){
+  var lp=s.lastp,bad=lp.f==="hi"||lp.f==="lo";
+  return'<div class="lab'+(bad?" flag":"")+'"><div class="top"><div class="name">'+esc(s.name)+'</div><div class="latest">'+esc(lp.raw)+'</div></div>'+
+    '<div class="meta"><span>'+esc(fmtD(lp.date))+'</span>'+pill(lp.f)+(lp.ref?'<span>參考值 '+esc(refText(lp.ref))+'</span>':"")+'<span>共 '+s.pts.length+' 次</span></div>'+
+    (s.num.length>=2?spark(s):'<p class="sub">數值少於兩次或為文字結果，無法畫曲線。</p>')+'</div>';
+}
+function addMonths(ymd,n){var d=new Date(+ymd.slice(0,4),+ymd.slice(4,6)-1+n,+ymd.slice(6));return d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)}
+function daysBetween(a,b){return Math.round((Date.parse(fmtD(b))-Date.parse(fmtD(a)))/864e5)}
+function focusInfo(d){
+  var p=person(),pins=state.sample?["甲狀腺"]:p.pins,S=labSeries(d),last="";
+  var groups=GROUPS.filter(function(g){return pins.indexOf(g.name)>=0}).map(function(g){
+    var ss=S.filter(function(x){return g.re.test(x.name+" "+x.sub+" "+x.code)});
+    ss.forEach(function(x){if(x.lastp&&x.lastp.date>last)last=x.lastp.date});return{g:g,ss:ss}});
+  if(!last)S.forEach(function(x){if(x.lastp&&x.lastp.date>last)last=x.lastp.date});
+  return{p:p,pins:pins,groups:groups,last:last,next:last?addMonths(last,p.months||3):""};
+}
+function renderFocus(d){
+  var F=focusInfo(d),p=F.p,h="";
+  h+='<div class="card"><h2>'+esc(p.name)+' 的重點項目</h2><p class="sub">勾選要放在這一頁追蹤的項目（每個人可以不同）。</p><div class="chips" id="pins">'+
+    GROUPS.map(function(g){return'<label><input type="checkbox" data-pin="'+esc(g.name)+'"'+(F.pins.indexOf(g.name)>=0?" checked":"")+'> '+esc(g.name)+'</label>'}).join("")+'</div></div>';
+  if(F.next){var left=daysBetween(today(),F.next),due=left<=14;
+    h+='<div class="card remind'+(due?" due":"")+'"><div><div class="sub">上次檢驗 '+esc(fmtD(F.last))+'，建議下次回診抽血</div><div class="big">'+esc(fmtD(F.next))+'</div><div class="sub">'+(left>=0?"還有 "+left+" 天":"已超過 "+(-left)+" 天")+'</div></div>'+
+      '<label class="sub">間隔 <select id="months">'+[1,2,3,4,6,12].map(function(m){return'<option value="'+m+'"'+((p.months||3)===m?" selected":"")+'>'+m+' 個月</option>'}).join("")+'</select></label>'+
+      '<button type="button" id="btnIcs">加入行事曆提醒</button></div>';}
+  if(!F.groups.length)h+='<div class="card"><p class="sub">還沒有勾選重點項目。在上方勾選一個或多個，例如「甲狀腺」或「血糖」。</p></div>';
+  F.groups.forEach(function(o){
+    h+='<div class="card"><h2>'+esc(o.g.name)+'</h2>'+(o.ss.length?'<div class="labs">'+o.ss.map(labCard).join("")+'</div>':'<p class="sub">還沒有'+esc(o.g.name)+'的檢驗數值。可以用「拍照／截圖匯入」或「手動新增」加入。</p>')+'</div>'});
+  var ds=p.doses.slice().sort(function(a,b){return a.date<b.date?1:-1});
+  h+='<div class="card"><h2>用藥劑量紀錄</h2><p class="sub">醫師調整藥量時記一筆，方便對照檢驗數值的變化。</p>'+
+    (ds.length?tbl([["開始日期"],["藥品"],["劑量"],["備註"],[""]],ds.map(function(x){return'<tr><td>'+esc(fmtD(x.date))+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.dose)+'</td><td style="white-space:normal">'+esc(x.note)+'</td><td><button type="button" class="del" data-dose="'+esc(x.id)+'">刪除</button></td></tr>'}).join("")):"")+
+    '<div class="tools" style="margin-top:10px"><input type="date" id="dDate" aria-label="開始日期" value="'+fmtD(today())+'"><input type="search" id="dName" placeholder="藥品名稱，例如 昂特欣" aria-label="藥品名稱"><input type="search" id="dDose" placeholder="劑量，例如 每天 50 mcg" aria-label="劑量"><input type="search" id="dNote" placeholder="備註（選填）" aria-label="備註"><button type="button" id="btnDose">新增</button></div></div>';
+  if(state.sample)h+='<p class="sub">這一頁目前用示範資料展示。</p>';
+  $("v-focus").innerHTML=h;
+}
+$("v-focus").addEventListener("change",function(ev){var t=ev.target,p=person();
+  if(t.dataset.pin){var n=t.dataset.pin,i=p.pins.indexOf(n);if(t.checked&&i<0)p.pins.push(n);if(!t.checked&&i>=0)p.pins.splice(i,1);if(state.sample&&t.checked&&p.pins.indexOf("甲狀腺")<0&&false){}saveAll();renderFocus(state.data)}
+  else if(t.id==="months"){p.months=+t.value;saveAll();renderFocus(state.data)}});
+$("v-focus").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;var p=person();
+  if(b.id==="btnDose"){var dt=$("dDate").value.replace(/-/g,""),n=$("dName").value.trim(),ds=$("dDose").value.trim();
+    if(!n||!ds){say("請填藥品名稱和劑量。",true);return}
+    p.doses.push({id:uid(),date:dt||today(),name:n,dose:ds,note:$("dNote").value.trim()});saveAll();renderFocus(state.data);say("已新增用藥劑量紀錄。")}
+  else if(b.dataset.dose){if(!confirm("刪除這筆用藥紀錄？"))return;p.doses=p.doses.filter(function(x){return x.id!==b.dataset.dose});saveAll();renderFocus(state.data)}
+  else if(b.id==="btnIcs"){var F=focusInfo(state.data);if(!F.next)return;
+    var nx=F.next,end=addMonths(nx,0),e=new Date(Date.parse(fmtD(nx))+864e5),endD=e.getFullYear()+("0"+(e.getMonth()+1)).slice(-2)+("0"+e.getDate()).slice(-2);
+    var what=F.groups.map(function(o){return o.g.name}).join("、")||"定期檢查",stamp=new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+    var ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//health-robot//zh-TW","BEGIN:VEVENT","UID:"+uid()+"@health-robot","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+nx,"DTEND;VALUE=DATE:"+endD,
+      "SUMMARY:"+p.name+" 回診抽血（"+what+"）","DESCRIPTION:健康記錄機器人提醒：上次檢驗 "+fmtD(F.last)+"。","BEGIN:VALARM","TRIGGER:-P7D","ACTION:DISPLAY","DESCRIPTION:一週後回診抽血","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+    downloadBlob(p.name+"_回診提醒_"+fmtD(nx)+".ics",new Blob([ics],{type:"text/calendar"}))}});
+
+/* ---------- 成員 ---------- */
+function renderPersons(){
+  $("person").innerHTML=store.people.map(function(p){return'<option value="'+esc(p.id)+'"'+(p.id===store.cur?" selected":"")+'>'+esc(p.name)+'</option>'}).join("");
+  if(!$("pPerson").hidden)renderPersonPanel();fileStatus();
+}
+function renderPersonPanel(){
+  $("pPerson").innerHTML='<h2>管理成員</h2><p class="sub">每個人的資料、重點項目和提醒都分開存放。</p>'+
+    store.people.map(function(p){var n=(p.data?p.data.labs.length:0)+p.manual.length;return'<div class="row"><input type="text" data-rn="'+esc(p.id)+'" value="'+esc(p.name)+'" aria-label="名稱"><span class="sub">'+n+' 筆檢驗</span>'+(store.people.length>1?'<button type="button" class="del" data-rm="'+esc(p.id)+'">刪除這個人</button>':"")+'</div>'}).join("")+
+    '<div class="row"><input type="text" id="newName" placeholder="新增成員名稱" aria-label="新增成員名稱"><button type="button" id="btnAddP">新增</button><button type="button" class="primary" id="btnCloseP">完成</button></div>';
+}
+$("person").addEventListener("change",function(){store.cur=this.value;saveAll();afterStoreChange();say("已切換到「"+person().name+"」。")});
+$("btnPerson").addEventListener("click",function(){var P=$("pPerson");P.hidden=!P.hidden;if(!P.hidden)renderPersonPanel()});
+$("pPerson").addEventListener("change",function(ev){var t=ev.target;if(t.dataset.rn){var v=t.value.trim();if(!v)return;store.people.forEach(function(p){if(p.id===t.dataset.rn)p.name=v});saveAll();renderPersons();render()}});
+$("pPerson").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
+  if(b.id==="btnCloseP"){$("pPerson").hidden=true;return}
+  if(b.id==="btnAddP"){var v=$("newName").value.trim();if(!v)return;var np=newPerson(v,[]);store.people.push(np);store.cur=np.id;saveAll();afterStoreChange();renderPersonPanel();say("已新增「"+v+"」並切換過去。");return}
+  if(b.dataset.rm){var p=store.people.filter(function(x){return x.id===b.dataset.rm})[0];if(!p||!confirm("確定刪除「"+p.name+"」和他的所有資料？這個動作無法復原（除非有備份）。"))return;
+    store.people=store.people.filter(function(x){return x!==p});if(store.cur===p.id)store.cur=store.people[0].id;saveAll();afterStoreChange();renderPersonPanel()}});
+
+/* ---------- 匯入健康存摺 XML／Excel ---------- */
 function load(files){
   var list=[].slice.call(files||[]);if(!list.length)return;
+  var imgs=list.filter(function(f){return /^image\//.test(f.type)||/\.(png|jpe?g|heic|webp|bmp)$/i.test(f.name)});
+  list=list.filter(function(f){return imgs.indexOf(f)<0});
+  if(imgs.length)startOcr(imgs);
+  if(!list.length)return;
   Promise.all(list.map(function(f){var x=/\.xlsx$/i.test(f.name);return(x?f.arrayBuffer():f.text()).then(function(t){return{name:f.name,text:t,xlsx:x}})})).then(function(arr){
-    var base=state.sample?null:state.data,ok=0,bad=[];
+    var p=person(),base=p.data,ok=0,bad=[];
     arr.forEach(function(a){try{base=merge(base,a.xlsx?parseXlsx(a.text):parseXml(a.text));ok++}catch(e){bad.push(a.name+"："+e.message)}});
-    if(ok){var was=state.sample;state.data=sortData(base);state.sample=false;if(was)state.selInit=false;persist();render()}
-    say(bad.length?"無法讀取："+bad.join("；"):"已匯入 "+ok+" 個檔案，共 "+state.data.visits.length+" 筆門診、"+state.data.dental.length+" 筆牙科、"+state.data.labs.length+" 筆檢驗。",bad.length>0);
+    if(ok){var was=state.sample;p.data=sortData(base);if(was)state.selInit=false;saveAll();refreshData();render()}
+    say(bad.length?"無法讀取："+bad.join("；"):"已匯入 "+ok+" 個檔案到「"+p.name+"」，共 "+p.data.visits.length+" 筆門診、"+p.data.dental.length+" 筆牙科、"+p.data.labs.length+" 筆檢驗。",bad.length>0);
   }).catch(function(){say("讀取檔案失敗，請再試一次。",true)});
 }
 var drop=$("drop");
@@ -489,8 +688,235 @@ var drop=$("drop");
 drop.addEventListener("drop",function(ev){load(ev.dataTransfer.files)});
 $("btnPick").addEventListener("click",function(){$("file").click()});
 $("file").addEventListener("change",function(){load(this.files);this.value=""});
-$("btnClear").addEventListener("click",function(){state.data=sampleData();state.sample=true;state.selInit=false;try{localStorage.removeItem(KEY)}catch(e){}render();say("已清除，回到示範資料。")});
-$("remember").addEventListener("change",persist);
+$("btnImg").addEventListener("click",function(){$("imgFile").click()});
+$("imgFile").addEventListener("change",function(){var f=[].slice.call(this.files||[]);this.value="";if(f.length)startOcr(f)});
+document.addEventListener("paste",function(ev){
+  var t=ev.target;if(t&&(t.tagName==="TEXTAREA"||t.tagName==="INPUT"))return;
+  var it=[].slice.call((ev.clipboardData&&ev.clipboardData.items)||[]).filter(function(x){return x.kind==="file"&&/^image\//.test(x.type)}).map(function(x){return x.getAsFile()});
+  if(it.length){ev.preventDefault();startOcr(it)}});
+$("btnClear").addEventListener("click",function(){var p=person();if(state.sample){say("「"+p.name+"」目前沒有資料。");return}
+  if(!confirm("確定清除「"+p.name+"」的所有健康存摺資料和自行紀錄？"))return;
+  p.data=null;p.manual=[];p.sel=null;state.selInit=false;saveAll();refreshData();render();say("已清除「"+p.name+"」的資料。")});
+$("v-labs").addEventListener("click",function(ev){var b=ev.target.closest("button.del");if(!b||!b.dataset.mid)return;
+  if(!confirm("刪除這筆自行紀錄的數值？"))return;var p=person();p.manual=p.manual.filter(function(m){return m.id!==b.dataset.mid});saveAll();refreshData();render();say("已刪除。")});
+
+/* ---------- 拍照／截圖／貼上文字 → 辨識 → 核對 → 存入 ---------- */
+var half=function(s){return String(s||"").replace(/[！-～]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0)}).replace(/　/g," ")};
+var norm=function(s){return half(s).toUpperCase().replace(/[\s.\-_()\[\]:,'"·・、\/]/g,"")};
+var SYN=[["TSH","甲狀腺刺激素","甲促素","促甲狀腺"],["FREET4","FT4","游離甲狀腺素","游離T4"],["FREET3","FT3","游離三碘"],["T4","甲狀腺素"],["T3","三碘甲狀腺"],["TPOAB","ANTITPO","甲狀腺過氧化"],
+  ["HBA1C","HBALC","HBAIC","醣化血紅素","糖化血紅素","A1C"],["SUGARAC","GLUAC","GLUCOSEAC","空腹血糖","飯前血糖","葡萄糖空腹"],["LDL","LDLC","低密度"],["HDL","HDLC","高密度"],["TG","三酸甘油","TRIGLYCERIDE"],
+  ["CHOL","TCHO","總膽固醇","CHOLESTEROL"],["CREA","CRE","CREATININE","肌酸酐","肌酐"],["EGFR","腎絲球"],["GPT","ALT","麩丙酮"],["GOT","AST","麩草醋"],["UA","URICACID","尿酸"],["HGB","HB","血色素","血紅素"]];
+function synOf(s){var n=norm(s);if(!n)return -1;for(var i=0;i<SYN.length;i++){for(var j=0;j<SYN[i].length;j++){var t=SYN[i][j];if(n===t||(t.length>=3||/[一-鿿]/.test(t))&&n.indexOf(t)>=0)return i}}return -1}
+function matchSeries(name,S){
+  var n=norm(name);if(!n)return"";var k="";
+  S.some(function(s){if(norm(s.name)===n||norm(s.sub)===n){k=s.key;return true}});if(k)return k;
+  var g=synOf(name);if(g>=0)S.some(function(s){if(synOf(s.name)===g||synOf(s.sub)===g){k=s.key;return true}});if(k)return k;
+  if(n.length>=3)S.some(function(s){var a=norm(s.name);if(a.length>=3&&(a.indexOf(n)>=0||n.indexOf(a)>=0)){k=s.key;return true}});
+  return k;
+}
+function findDate(s){
+  s=half(s);var m=/(\d{4})\s*[\/\-.年]\s*(\d{1,2})\s*[\/\-.月]\s*(\d{1,2})/.exec(s),y;
+  if(m&&+m[1]>1990&&+m[1]<2100)y=+m[1];
+  else{m=/(?:民國)?\s*(\d{2,3})\s*[\/\-.年]\s*(\d{1,2})\s*[\/\-.月]\s*(\d{1,2})/.exec(s);if(m&&+m[1]>=90&&+m[1]<200)y=+m[1]+1911;else return""}
+  var mo=+m[2],d=+m[3];if(mo<1||mo>12||d<1||d>31)return"";return y+("0"+mo).slice(-2)+("0"+d).slice(-2);
+}
+var NUMTOK=/^([<>≦≧≤≥]=?)?-?\d+(?:\.\d+)?[HL*↑↓]{0,2}$/;
+var UNITTOK=/^(?=.*[A-Za-zµμ%])[A-Za-zµμ%\/\d^.·×]{1,14}$/;
+function fixUnit(u){return String(u||"").replace(/^[uµμ][lI1|][uU]\//,"uIU/").replace(/\/dl$/,"/dL").replace(/\/ml$/i,"/mL")}
+var cleanName=function(n){return String(n||"").replace(/^[\s.,:：、·・\-_]+|[\s.,:：、·・\-_]+$/g,"")};
+function cleanVal(v){return half(v).replace(/[HL*↑↓]+$/,"").replace(/≦|≤/,"<=").replace(/≧|≥/,">=").replace(/\s+/g,"")}
+function splitRef(line){
+  var re=/(-?\d+(?:\.\d+)?)\s*(?:-|~|～|–|—|至)\s*(-?\d+(?:\.\d+)?)/g,m,last=null;while((m=re.exec(line)))last=m;
+  if(last){var a=+last[1],b=+last[2];if(b>a)return{ref:"["+last[1]+"]["+last[2]+"]",rest:(line.slice(0,last.index)+" "+line.slice(last.index+last[0].length)).trim()}}
+  var lm=/((?:<=?|≦|≤|>=?|≧|≥|小於|大於)\s*\d+(?:\.\d+)?)\s*$/.exec(line),before=lm?line.slice(0,lm.index):"";
+  if(lm&&/\d/.test(before))return{ref:lm[1].replace(/\s+/g,"").replace("小於","<").replace("大於",">"),rest:before.trim()};
+  return{ref:"",rest:line};
+}
+function valUnit(s){
+  s=half(s).trim();var m=/^((?:[<>≦≧≤≥]=?)?\s*-?\d+(?:\.\d+)?)\s*([HL*↑↓]{0,2})\s*(\S*)/.exec(s);
+  if(m)return{value:cleanVal(m[1]),unit:UNITTOK.test(m[3])?m[3]:""};
+  return s&&s.length<=12?{value:s,unit:""}:null;
+}
+function cleanLines(text){
+  return half(text).split(/\r?\n/).map(function(l){return l.replace(/[|｜]/g," ").replace(/([一-鿿])\s+(?=[一-鿿])/g,"$1").replace(/\s+/g," ").trim()}).filter(Boolean);
+}
+var L_NAME=/^(?:檢.{0,2}項目|項目名稱|檢查項目|項目)\s*[:：]?\s*(.+)$/,L_ORDER=/^(?:醫令名稱|檢驗名稱)\s*[:：]?\s*(.+)$/,L_VAL=/^(?:檢.{0,2}結果|結果值|結果|數值)\s*[:：]?\s*(.+)$/,
+  L_REF=/^(?:參考值|參考範圍|參考區間|正常值|參考.)\s*[:：]?\s*(.+)$/,L_INST=/^(?:醫事機構|醫療院所|院所|醫院)\s*[:：]?\s*(.+)$/,L_UNIT=/^(?:單位)\s*[:：]?\s*(.+)$/;
+var HEAD=/^(檢驗項目|項目|結果|單位|參考值|參考範圍|判讀|日期|檢驗日期|報告日期)$/;
+function parseReport(text){
+  var lines=cleanLines(text),rows=[],date="",inst="";
+  lines.forEach(function(l){if(!date){var d=findDate(l);if(d)date=d}});
+  var labelMode=lines.some(function(l){return /^(?:檢.{0,2}結果|結果|數值)\s*[:：]/.test(l)});
+  if(labelMode){
+    var cur=null,cd=date,ci="";
+    var push=function(){if(cur&&(cur.name||cur.order)&&cur.value!=="")rows.push({date:cur.date||cd,name:cleanName(cur.name||cur.order),value:cur.value,unit:fixUnit(cur.unit),ref:cur.ref,inst:cur.inst||ci});cur=null};
+    var get=function(){return cur||(cur={name:"",order:"",value:"",unit:"",ref:"",date:cd,inst:ci})};
+    lines.forEach(function(l){var m,d=findDate(l);
+      if(d&&/日期|採檢|報告|就醫/.test(l)){cd=d;if(cur&&cur.value==="")cur.date=d;return}
+      if((m=L_INST.exec(l))){ci=m[1];if(cur)cur.inst=ci;return}
+      if((m=L_NAME.exec(l))){if(cur&&(cur.value!==""||cur.name))push();get().name=m[1];return}
+      if((m=L_ORDER.exec(l))){if(cur&&cur.value!=="")push();get().order=m[1];return}
+      if((m=L_VAL.exec(l))){var sr=splitRef(m[1]),vu=valUnit(sr.rest);if(vu){var c=get();c.value=vu.value;c.unit=vu.unit;if(sr.ref&&!c.ref)c.ref=sr.ref}return}
+      if((m=L_UNIT.exec(l))){get().unit=m[1];return}
+      if((m=L_REF.exec(l))){var r=splitRef(m[1]);get().ref=r.ref||m[1].trim();return}
+    });push();
+  }else{
+    var pend="";
+    lines.forEach(function(l){
+      var d=findDate(l);if(d){date=date||d;return}
+      if(HEAD.test(l)||l.split(" ").every(function(t){return HEAD.test(t)}))return;
+      var sr=splitRef(l),toks=sr.rest.split(" "),i,name="",vu=null;
+      for(i=0;i<toks.length;i++){if(NUMTOK.test(toks[i])){if(i>0||pend){name=toks.slice(0,i).join(" ");vu={value:cleanVal(toks[i]),unit:UNITTOK.test(toks[i+1]||"")?toks[i+1]:""}}break}}
+      if(!vu){var m=/^(.*?[A-Za-z一-鿿)）%])\s*((?:[<>≦≧≤≥]=?)?\d+(?:\.\d+)?)\s*([A-Za-zµμ%][\w\/%^.µμ]*)?/.exec(sr.rest);
+        if(m&&/[A-Za-z一-鿿]{2,}/.test(m[1])){name=m[1];vu={value:cleanVal(m[2]),unit:m[3]||""}}}
+      name=name.replace(/[:：]\s*$/,"").trim();
+      if(vu&&!name&&pend)name=pend;
+      if(vu&&name&&/[A-Za-z一-鿿]/.test(name)&&!/^(第|共|頁|Page)/i.test(name)){rows.push({date:"",name:cleanName(name),value:vu.value,unit:fixUnit(vu.unit),ref:sr.ref,inst:""});pend=""}
+      else if(!/\d/.test(l)&&/[A-Za-z一-鿿]/.test(l)&&l.length<=30)pend=l;
+      else pend="";
+    });
+    rows.forEach(function(r){r.date=date});
+  }
+  if(!inst){lines.some(function(l){var m=/([一-鿿]{2,}(?:醫院|診所|醫學中心|檢驗所|衛生所))/.exec(l);if(m){inst=m[1];return true}})}
+  return{date:date,inst:inst,rows:rows};
+}
+
+var imp=null;
+function seriesForPerson(){var S=state.sample?[]:labSeries(state.data);return S}
+function openImport(mode,extra){
+  imp={mode:mode,date:today(),inst:"",rows:[],text:"",imgs:[],busy:false,status:""};
+  for(var k in extra)imp[k]=extra[k];
+  if(mode==="manual")imp.rows=[{on:true,date:"",name:"",key:"",value:"",unit:"",ref:""}];
+  $("pImport").hidden=false;renderImport();$("pImport").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function applyParse(text){
+  var r=parseReport(text),S=seriesForPerson();imp.text=text;
+  if(r.date)imp.date=r.date;if(r.inst&&!imp.inst)imp.inst=r.inst;
+  imp.rows=r.rows.map(function(x){return{on:true,date:x.date&&x.date!==imp.date?x.date:"",name:x.name,key:matchSeries(x.name,S),value:x.value,unit:x.unit,ref:x.ref}});
+}
+function syncImport(){
+  if(!imp)return;var P=$("pImport");
+  var di=P.querySelector("#impDate");if(di&&di.value)imp.date=di.value.replace(/-/g,"");
+  var ii=P.querySelector("#impInst");if(ii)imp.inst=ii.value.trim();
+  var ta=P.querySelector("#impText");if(ta)imp.text=ta.value;
+  [].forEach.call(P.querySelectorAll("tr[data-r]"),function(tr){var r=imp.rows[+tr.dataset.r];if(!r)return;
+    var q=function(c){return tr.querySelector("[data-f="+c+"]")};
+    r.on=q("on").checked;r.name=q("name").value.trim();r.key=q("key").value;r.value=q("value").value.trim();r.unit=q("unit").value.trim();r.ref=q("ref").value.trim();r.date=(q("date").value||"").replace(/-/g,"")});
+}
+function renderImport(){
+  var P=$("pImport"),S=seriesForPerson(),p=person();
+  var title={photo:"拍照／截圖匯入",paste:"貼上文字匯入",manual:"手動新增"}[imp.mode];
+  var h='<h2>'+title+'：存到「'+esc(p.name)+'」</h2>';
+  h+='<div class="row"><label class="sub">檢驗日期 <input type="date" id="impDate" value="'+esc(fmtD(imp.date))+'"></label><label class="sub">院所 <input type="text" id="impInst" value="'+esc(imp.inst)+'" placeholder="選填"></label></div>';
+  if(imp.mode==="photo"){
+    h+='<div class="row">'+imp.imgs.map(function(u){return'<img class="thumb" src="'+u+'" alt="匯入的圖片">'}).join("")+'</div>';
+    if(imp.busy)h+='<div class="prog"><div id="impBar" style="width:'+Math.round((imp.pct||0)*100)+'%"></div></div>';
+    if(imp.status)h+='<p class="sub" id="impSt">'+esc(imp.status)+'</p>';
+  }
+  if(imp.mode==="paste"||(imp.mode==="photo"&&!imp.busy&&imp.text!=="")){
+    h+=(imp.mode==="photo"?'<details><summary class="sub">辨識出的文字（可修改後按「重新解析」）</summary>':'<p class="sub">把報告上的文字貼在這裡。手機可以在截圖上長按文字，選「拷貝」或「全選」（iPhone 的原況文字、Android 的 Google 智慧鏡頭都可以）。</p>')+
+      '<textarea id="impText" aria-label="報告文字">'+esc(imp.text)+'</textarea><div class="row"><button type="button" id="impParse">'+(imp.mode==="paste"?"解析":"重新解析")+'</button></div>'+(imp.mode==="photo"?'</details>':"");
+  }
+  if(!imp.busy&&(imp.rows.length||imp.mode!=="paste"||imp.text)){
+    var opts=function(sel){return'<option value="">（新項目）</option>'+S.map(function(s){return'<option value="'+esc(s.key)+'"'+(s.key===sel?" selected":"")+'>'+esc(s.name)+(s.sub&&s.sub!==s.name&&s.sub.length<20?"・"+esc(s.sub):"")+'</option>'}).join("")};
+    h+=imp.rows.length?'<p class="sub">請逐列核對：數值、單位、參考值有沒有辨識錯。「對應到」選既有項目，就會接在同一條曲線上。取消勾選的列不會存入。</p>':(imp.mode==="photo"?'<p class="sub">沒有辨識出檢驗項目。可以展開上方文字修改後重新解析，或按「新增一列」自己輸入。</p>':"");
+    if(imp.rows.length)h+='<div class="scroll"><table class="rv"><thead><tr><th>存入</th><th>項目名稱</th><th>對應到</th><th class="num">結果</th><th>單位</th><th>參考值</th><th>日期（不同才填）</th><th></th></tr></thead><tbody>'+
+      imp.rows.map(function(r,i){return'<tr data-r="'+i+'"><td><input type="checkbox" class="pick" data-f="on"'+(r.on?" checked":"")+' aria-label="存入這一列"></td><td><input type="text" data-f="name" value="'+esc(r.name)+'" placeholder="例如 TSH" list="seriesNames"></td><td><select data-f="key">'+opts(r.key)+'</select></td>'+
+        '<td class="c-v"><input type="text" data-f="value" value="'+esc(r.value)+'" inputmode="decimal"></td><td class="c-u"><input type="text" data-f="unit" value="'+esc(r.unit)+'"></td><td class="c-r"><input type="text" data-f="ref" value="'+esc(r.ref.replace(/^\[(.*?)\]\[(.*?)\]$/,"$1-$2"))+'" placeholder="0.27-4.2"></td>'+
+        '<td><input type="date" data-f="date" value="'+esc(fmtD(r.date))+'"></td><td><button type="button" class="del" data-rowdel="'+i+'">移除</button></td></tr>'}).join("")+'</tbody></table></div>';
+    h+='<datalist id="seriesNames">'+S.map(function(s){return'<option value="'+esc(s.name)+'">'}).join("")+'</datalist>';
+  }
+  h+='<div class="row">'+(imp.busy?"":'<button type="button" id="impAdd">新增一列</button><button type="button" class="primary" id="impSave"'+(imp.rows.length?"":" disabled")+'>存入'+(imp.rows.length?" "+imp.rows.filter(function(r){return r.on}).length+" 筆":"")+'</button>')+'<button type="button" id="impCancel">'+(imp.busy?"停止":"取消")+'</button></div>';
+  P.innerHTML=h;
+}
+$("pImport").addEventListener("change",function(ev){if(ev.target.dataset.f==="on"){syncImport();var b=$("impSave");if(b)b.textContent="存入 "+imp.rows.filter(function(r){return r.on}).length+" 筆"}
+  if(ev.target.dataset.f==="name"){syncImport();var tr=ev.target.closest("tr"),r=imp.rows[+tr.dataset.r];if(r&&!r.key){r.key=matchSeries(r.name,seriesForPerson());tr.querySelector("[data-f=key]").value=r.key}}});
+$("pImport").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
+  if(b.id==="impCancel"){if(imp&&imp.busy)imp.cancel=true;imp=null;$("pImport").hidden=true;$("pImport").innerHTML="";return}
+  syncImport();
+  if(b.id==="impParse"){applyParse(imp.text);renderImport();if(!imp.rows.length)say("沒有找到「項目 數值」格式的內容，請確認文字或改用手動新增。",true);else say("");return}
+  if(b.id==="impAdd"){imp.rows.push({on:true,date:"",name:"",key:"",value:"",unit:"",ref:""});renderImport();var ins=$("pImport").querySelectorAll("[data-f=name]");if(ins.length)ins[ins.length-1].focus();return}
+  if(b.dataset.rowdel!=null){imp.rows.splice(+b.dataset.rowdel,1);renderImport();return}
+  if(b.id==="impSave")saveImport();
+});
+function refStore(s){s=half(s||"").trim();var m=/^(-?\d+(?:\.\d+)?)\s*(?:-|~|～|–|—|至)\s*(-?\d+(?:\.\d+)?)$/.exec(s);return m?"["+m[1]+"]["+m[2]+"]":s}
+function saveImport(){
+  var p=person(),S=seriesForPerson(),n=0,dup=0,bad=0,names={};S.forEach(function(s){names[s.key]=s.name});
+  imp.rows.forEach(function(r){if(!r.on)return;if(!r.name||r.value===""){bad++;return}
+    var key=r.key||("M|"+norm(r.name)),date=r.date||imp.date||today(),val=cleanVal(r.value);
+    if(p.manual.some(function(m){return m.key===key&&m.date===date&&m.value===val})){dup++;return}
+    if(p.data&&state.data.labs.some(function(l){return!l.mid&&l.date===date&&l.result.trim()===val&&S.some(function(s){return s.key===key&&s.code===l.code})})){dup++;return}
+    p.manual.push({id:uid(),date:date,name:names[key]||r.name,key:key,value:val,unit:r.unit,ref:refStore(r.ref),inst:imp.inst,src:imp.mode});n++});
+  if(!n&&!dup){say(bad?"有 "+bad+" 列缺少項目名稱或結果，沒有存入。":"沒有勾選要存入的列。",true);return}
+  var was=state.sample;saveAll();if(was)state.selInit=false;refreshData();render();
+  imp=null;$("pImport").hidden=true;$("pImport").innerHTML="";
+  say("已存入「"+p.name+"」"+n+" 筆檢驗數值"+(dup?"（"+dup+" 筆已經有了，略過）":"")+(bad?"（"+bad+" 列資料不完整，略過）":"")+"。可以在「重點」或「檢驗趨勢」看到。");
+}
+$("btnPaste").addEventListener("click",function(){openImport("paste")});
+$("btnManual").addEventListener("click",function(){openImport("manual")});
+
+/* OCR：tesseract.js，程式與繁中／英文字庫都在 lib/ 資料夾，不連網 */
+var ocrP=null;
+var abs=function(u){return new URL(u,location.href).href};
+function loadScript(src){return new Promise(function(res,rej){var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=function(){rej(new Error("載入 "+src+" 失敗"))};document.head.appendChild(s)})}
+function getOcr(){
+  if(location.protocol==="file:")return Promise.reject(new Error("FILE"));
+  if(!ocrP)ocrP=(window.Tesseract?Promise.resolve():loadScript("lib/ocr/tesseract.min.js")).then(function(){
+    return Tesseract.createWorker(["chi_tra","eng"],1,{workerPath:abs("lib/ocr/worker.min.js"),corePath:abs("lib/ocr/"),langPath:abs("lib/lang"),gzip:true,
+      logger:function(m){if(!imp||!imp.busy)return;var lab={"loading tesseract core":"載入辨識程式","initializing tesseract":"初始化","loading language traineddata":"載入中文字庫（第一次較久）","initializing api":"初始化","recognizing text":"辨識文字中"}[m.status]||m.status;
+        imp.pct=m.progress||0;var bar=$("impBar"),st=$("impSt");if(bar)bar.style.width=Math.round(imp.pct*100)+"%";if(st)st.textContent=(imp.n>1?"第 "+imp.k+"／"+imp.n+" 張：":"")+lab+"… "+Math.round(imp.pct*100)+"%"}})
+  }).then(function(w){return w.setParameters({preserve_interword_spaces:"1"}).then(function(){return w})}).catch(function(e){ocrP=null;throw e});
+  return ocrP;
+}
+function prepImage(file){
+  return new Promise(function(res,rej){var u=URL.createObjectURL(file),im=new Image();
+    im.onload=function(){var w=im.naturalWidth,h=im.naturalHeight,sc=w<1400?Math.min(2.5,2000/w):Math.min(1,3000/w),c=document.createElement("canvas");
+      c.width=Math.round(w*sc);c.height=Math.round(h*sc);var x=c.getContext("2d");x.imageSmoothingQuality="high";x.drawImage(im,0,0,c.width,c.height);
+      var d=x.getImageData(0,0,c.width,c.height),a=d.data,sum=0;for(var i=0;i<a.length;i+=4){var g=.299*a[i]+.587*a[i+1]+.114*a[i+2];a[i]=a[i+1]=a[i+2]=g;sum+=g}
+      if(sum/(a.length/4)<110)for(var j=0;j<a.length;j+=4){a[j]=a[j+1]=a[j+2]=255-a[j]} /* 深色模式截圖：反白 */
+      x.putImageData(d,0,0);res({canvas:c,url:u})};
+    im.onerror=function(){URL.revokeObjectURL(u);rej(new Error("無法開啟這張圖片（iPhone 的 HEIC 照片請先改用截圖或 JPG）"))};im.src=u});
+}
+function startOcr(files){
+  openImport("photo",{busy:true,status:"準備中…",n:files.length,k:0,pct:0});var my=imp,texts=[];
+  var step=function(i){
+    if(my.cancel)return;if(i>=files.length){my.busy=false;my.status=files.length+" 張圖片辨識完成。";applyParse(texts.join("\n"));renderImport();
+      if(!my.rows.length)say("辨識完成，但沒有找到檢驗項目。可以展開「辨識出的文字」修改，或改用手動新增。",true);else say("辨識出 "+my.rows.length+" 個項目，請核對後按「存入」。");return}
+    my.k=i+1;return prepImage(files[i]).then(function(o){my.imgs.push(o.url);renderImport();return getOcr().then(function(w){return w.recognize(o.canvas)})})
+      .then(function(r){texts.push(r.data.text);return step(i+1)});
+  };
+  Promise.resolve().then(function(){return step(0)}).catch(function(e){
+    my.busy=false;
+    if(e&&e.message==="FILE"){my.status="";my.mode="paste";say("直接用檔案開啟時，瀏覽器不允許執行文字辨識。請改用線上版或「安裝成桌面 App」，或在手機上拷貝截圖裡的文字，用「貼上文字」匯入。",true)}
+    else{my.status="辨識失敗："+(e&&e.message||e);say(my.status,true)}
+    if(imp===my)renderImport()});
+}
+
+/* ---------- 資料檔、備份、安裝 ---------- */
+var pFile=document.createElement("section");pFile.className="panel";pFile.id="pFile";pFile.hidden=true;$("filebar").after(pFile);
+var FTYPES=[{description:"健康記錄資料檔",accept:{"application/json":[".json"]}}];
+$("btnFile").addEventListener("click",function(){
+  if(fileH&&!fileOk){fileH.requestPermission({mode:"readwrite"}).then(function(r){if(r==="granted")adoptHandle(fileH,"auto");else say("沒有取得資料檔的權限。",true)});return}
+  pFile.hidden=!pFile.hidden;
+  pFile.innerHTML='<h2>連結資料檔</h2><p class="sub">資料檔會自動存檔。建議放在 iCloud Drive、Google 雲端硬碟或 OneDrive 的資料夾，MacBook 和 PC 都開同一個檔案，資料就會同步。</p>'+
+    '<div class="row"><button type="button" class="primary" id="fCreate">建立新資料檔（用目前的資料）</button><button type="button" id="fOpen">開啟現有資料檔（另一台電腦建立的）</button><button type="button" id="fClose">取消</button></div>'+
+    '<p class="sub">注意：兩台電腦不要同時開著修改，以免互相覆蓋。每次開啟時會讀取檔案裡較新的那一份。</p>';
+});
+pFile.addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
+  if(b.id==="fClose"){pFile.hidden=true;return}
+  if(b.id==="fCreate")window.showSaveFilePicker({suggestedName:"健康記錄資料.json",types:FTYPES}).then(function(h){pFile.hidden=true;return adoptHandle(h,"create")}).catch(function(e){if(e&&e.name!=="AbortError")say("無法建立資料檔："+e.message,true)});
+  if(b.id==="fOpen")window.showOpenFilePicker({types:FTYPES}).then(function(a){var h=a[0];return h.requestPermission({mode:"readwrite"}).then(function(r){if(r!=="granted")throw new Error("沒有寫入權限");pFile.hidden=true;return adoptHandle(h,"open")})}).catch(function(e){if(e&&e.name!=="AbortError")say("無法開啟資料檔："+e.message,true)});
+});
+$("btnBackup").addEventListener("click",function(){downloadBlob("健康記錄備份_"+today()+".json",new Blob([JSON.stringify(store,null,1)],{type:"application/json"}))});
+$("btnRestore").addEventListener("click",function(){$("restoreFile").click()});
+$("restoreFile").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;
+  f.text().then(function(t){var s=fixStore(JSON.parse(t));if(!s)throw new Error("不是健康記錄機器人的備份檔");
+    if(!confirm("讀取備份會用備份裡的資料取代目前所有成員的資料（"+s.people.map(function(p){return p.name}).join("、")+"）。確定？"))return;
+    store=s;saveAll();afterStoreChange();say("已讀取備份。")}).catch(function(e){say("讀取備份失敗："+e.message,true)})});
+var instEv=null;
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();instEv=e;$("btnInstall").hidden=false});
+$("btnInstall").addEventListener("click",function(){if(!instEv)return;instEv.prompt();instEv.userChoice.then(function(){instEv=null;$("btnInstall").hidden=true})});
+if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register("sw.js").catch(function(){});
 $("tabs").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
   [].forEach.call(this.children,function(x){x.setAttribute("aria-selected",x===b?"true":"false");$("v-"+x.dataset.v).hidden=x!==b})});
 $("v-visits").addEventListener("click",function(ev){var b=ev.target.closest("button.exp");if(!b)return;var r=$("det"+b.dataset.i),open=r.hidden;r.hidden=!open;b.textContent=open?"－":"＋";b.setAttribute("aria-expanded",open?"true":"false")});
@@ -536,7 +962,7 @@ function buildXlsx(d){
 }
 $("btnXlsx").addEventListener("click",function(){
   if(typeof XLSX==="undefined"){say("Excel 元件沒有載入，請連上網路後重新整理再試。",true);return}
-  var name="健康存摺統計_"+(state.sample?"示範":(state.data.meta.dl||"匯出"))+".xlsx",buf;
+  var name="健康記錄_"+(state.sample?"示範":person().name+"_"+today())+".xlsx",buf;
   try{buf=buildXlsx(state.data)}catch(e){say("產生 Excel 失敗："+e.message,true);return}
   var blob=new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   if(dl){dl.save({filename:name,data:blob}).then(function(){say("已匯出 "+name)}).catch(function(e){if(!e||e.code!=="declined")say("這個檢視畫面無法下載檔案。請把本工具的 HTML 檔下載後用瀏覽器開啟再匯出。",true)});return}
@@ -553,9 +979,13 @@ $("btnTheme").addEventListener("click",function(){var n=curTheme()==="dark"?"lig
 if(window.MutationObserver)new MutationObserver(labelTheme).observe(root,{attributes:true,attributeFilter:["data-theme"]});
 labelTheme();
 /* ---------- 啟動 ---------- */
-var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
-if(saved&&saved.visits){state.data=saved;state.sample=false;$("remember").checked=true}else{state.data=sampleData()}
-render();
+function boot(s){
+  store=fixStore(s)||defaultStore();
+  if(!s){try{var old=JSON.parse(localStorage.getItem("mhb-stats-v1")||"null");if(old&&old.visits){store.people[0].data=old;}}catch(e){}} /* 舊版保留的資料搬到「我」 */
+  refreshData();renderPersons();render();
+  idb.get("fileHandle").then(function(h){if(!h||!h.queryPermission)return;fileH=h;return h.queryPermission({mode:"readwrite"}).then(function(r){fileOk=r==="granted";if(fileOk)return adoptHandle(h,"auto");fileStatus()})}).catch(function(){}).then(fileStatus);
+}
+idb.get("store").then(function(t){return t?JSON.parse(t):null}).catch(function(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}}).then(boot,function(){boot(null)});
 })();
 </script>
 </body>
