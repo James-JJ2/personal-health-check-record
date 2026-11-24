@@ -267,6 +267,13 @@ header .hbtns{margin-left:auto;justify-content:flex-end;align-items:center;gap:1
 #btnTheme .ic{font-size:14px}
 header #btnRefresh{order:8;min-height:40px;padding:6px 16px;font-size:15px}
 @media (max-width:600px){header{padding-top:16px;padding-right:16px}header .hbtns{width:100%}header #btnRefresh{flex:1 1 auto}}
+/* ---------- 標題列兩顆按鈕上下相疊、同大小 ---------- */
+header .hbtns{flex-direction:column;align-items:stretch;gap:8px;width:auto}
+header #btnTheme,header #btnRefresh{order:0;width:170px;min-height:42px;padding:6px 14px;font-size:15px;justify-content:center;border-radius:99px}
+header #btnTheme{order:1;display:flex}
+header #btnRefresh{order:2}
+header .who{order:0;justify-content:flex-end}
+@media (max-width:600px){header .hbtns{flex-direction:row;width:100%}header #btnTheme,header #btnRefresh{flex:1 1 0;width:auto}header .who{flex:1 1 100%}}
 </style>
 </head>
 <body>
