@@ -391,7 +391,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-24：GitHub 私人 repo 共享資料">V1.2</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-24：GitHub 私人 repo 共享資料；修正 XML 與 Excel 重複匯入">V1.2.1</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -472,7 +472,7 @@ function defaultStore(){var a=newPerson("我",["甲狀腺"]),b=newPerson("太太
 function person(){var p=null;store.people.forEach(function(x){if(x.id===store.cur)p=x});return p||store.people[0]}
 function fixStore(s){
   if(!s||!s.people||!s.people.length)return null;
-  s.people.forEach(function(p){p.id=p.id||uid();p.name=p.name||"未命名";p.manual=p.manual||[];p.doses=p.doses||[];p.pins=p.pins||[];p.months=p.months||3});
+  s.people.forEach(function(p){if(p.data)p.data=sortData(dedupeData(p.data));p.id=p.id||uid();p.name=p.name||"未命名";p.manual=p.manual||[];p.doses=p.doses||[];p.pins=p.pins||[];p.months=p.months||3});
   if(!s.people.some(function(p){return p.id===s.cur}))s.cur=s.people[0].id;s.version=2;return s;
 }
 
@@ -590,11 +590,20 @@ function parseXlsx(buf){
 function merge(a,b){
   if(!a)return b;
   var out={meta:(b.meta.dl||"")>=(a.meta.dl||"")?b.meta:a.meta};
+  /* 以「同一筆紀錄」的關鍵欄位判斷重複（XML 與匯出的 Excel 欄位格式不同，不能整筆比對） */
+  var T=function(x){return String(x==null?"":x).replace(/\s+/g," ").trim().toUpperCase()};
+  var NV=function(x){var s=String(x==null?"":x).replace(/\s/g,"").replace(/＜/g,"<").replace(/＞/g,">");return/^-?\d/.test(s)&&isFinite(parseFloat(s))?String(parseFloat(s)):s};
+  var KF={visits:function(r){return JSON.stringify(r)},
+    dental:function(r){return[r.date,T(r.inst),r.seq,T(r.dx),+r.copay||0,+r.pts||0,(r.items||[]).map(function(x){return T(x.code)+"*"+(+x.qty||0)+"@"+T(x.tooth)}).join(",")].join("|")},
+    vacc:function(r){return[r.date,T(r.name)].join("|")},
+    labs:function(r){return[r.date,r.visit,T(r.code),T(r.item),NV(r.result)].join("|")},
+    imaging:function(r){return[r.date,T(r.code),T(r.name)].join("|")}};
   ["visits","dental","vacc","labs","imaging"].forEach(function(k){
-    var seen={},arr=[];a[k].concat(b[k]).forEach(function(r){var s=JSON.stringify(r);if(!seen[s]){seen[s]=1;arr.push(r)}});out[k]=arr;
+    var seen={},arr=[];(a[k]||[]).concat(b[k]||[]).forEach(function(r){var s=KF[k](r);if(!seen[s]){seen[s]=1;arr.push(r)}});out[k]=arr;
   });
   return out;
 }
+function dedupeData(d){if(!d||!d.meta)return d;return merge({meta:d.meta,visits:[],dental:[],vacc:[],labs:[],imaging:[]},d)}
 function sortData(d){
   var by=function(f){return function(x,y){return f(x)<f(y)?-1:f(x)>f(y)?1:0}};
   d.visits.sort(by(function(v){return v.date||v.rx}));d.dental.sort(by(function(v){return v.date}));
