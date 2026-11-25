@@ -349,7 +349,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康存摺統計工具<span class="ver" title="2026-11-24 發布：加入使用者密碼與管理介面">V1.1</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康存摺統計工具<span class="ver" title="2026-11-24：加入使用者密碼與管理介面；修正 XML 與 Excel 重複匯入">V1.1.1</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine">匯入健保署「健康存摺」下載的 XML 檔，自動整理就醫、用藥與檢驗統計。</p>
     </div>
     <div class="hbtns"><button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button></div>
@@ -461,11 +461,20 @@ function parseXlsx(buf){
 function merge(a,b){
   if(!a)return b;
   var out={meta:(b.meta.dl||"")>=(a.meta.dl||"")?b.meta:a.meta};
+  /* 以「同一筆紀錄」的關鍵欄位判斷重複（XML 與匯出的 Excel 欄位格式不同，不能整筆比對） */
+  var T=function(x){return String(x==null?"":x).replace(/\s+/g," ").trim().toUpperCase()};
+  var NV=function(x){var s=String(x==null?"":x).replace(/\s/g,"").replace(/＜/g,"<").replace(/＞/g,">");return/^-?\d/.test(s)&&isFinite(parseFloat(s))?String(parseFloat(s)):s};
+  var KF={visits:function(r){return JSON.stringify(r)},
+    dental:function(r){return[r.date,T(r.inst),r.seq,T(r.dx),+r.copay||0,+r.pts||0,(r.items||[]).map(function(x){return T(x.code)+"*"+(+x.qty||0)+"@"+T(x.tooth)}).join(",")].join("|")},
+    vacc:function(r){return[r.date,T(r.name)].join("|")},
+    labs:function(r){return[r.date,r.visit,T(r.code),T(r.item),NV(r.result)].join("|")},
+    imaging:function(r){return[r.date,T(r.code),T(r.name)].join("|")}};
   ["visits","dental","vacc","labs","imaging"].forEach(function(k){
-    var seen={},arr=[];a[k].concat(b[k]).forEach(function(r){var s=JSON.stringify(r);if(!seen[s]){seen[s]=1;arr.push(r)}});out[k]=arr;
+    var seen={},arr=[];(a[k]||[]).concat(b[k]||[]).forEach(function(r){var s=KF[k](r);if(!seen[s]){seen[s]=1;arr.push(r)}});out[k]=arr;
   });
   return out;
 }
+function dedupeData(d){if(!d||!d.meta)return d;return merge({meta:d.meta,visits:[],dental:[],vacc:[],labs:[],imaging:[]},d)}
 function sortData(d){
   var by=function(f){return function(x,y){return f(x)<f(y)?-1:f(x)>f(y)?1:0}};
   d.visits.sort(by(function(v){return v.date||v.rx}));d.dental.sort(by(function(v){return v.date}));
@@ -888,7 +897,7 @@ var wasOpen=false;try{wasOpen=sessionStorage.getItem(KEY+"-unlocked")==="1"}catc
 if(wasOpen)unlock();else setTimeout(function(){$("lockPw").focus()},50);
 /* ---------- 啟動 ---------- */
 var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
-if(saved&&saved.visits){state.data=saved;state.sample=false;$("remember").checked=true}else{state.data=sampleData()}
+if(saved&&saved.visits){state.data=sortData(dedupeData(saved));state.sample=false;$("remember").checked=true}else{state.data=sampleData()}
 render();
 })();
 </script>
