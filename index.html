@@ -368,6 +368,9 @@ header #btnTheme .ic{font-size:12px}
 @media (prefers-reduced-motion:reduce){#btnKeep.keep-need{animation:none}}
 .lab-top{margin:10px 0 14px}.lab-top>.card{box-shadow:none}
 .pw-h{margin:14px 0 4px;font-size:15px;color:var(--c6)}
+.backbar{position:sticky;top:0;z-index:3;display:flex;justify-content:flex-start;margin:-4px 0 10px;padding:4px 0;background:inherit}
+.back-btn{background:#34444a;color:#fff;border:0;border-radius:99px;font-weight:700;min-height:40px;padding:6px 16px}
+.back-btn:hover{background:#23323a}
 </style>
 </head>
 <body>
@@ -400,7 +403,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：管理成員可設定、變更、取消密碼">V1.3.0</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：所有面板加「返回主畫面」、上一頁可關閉面板">V1.3.1</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -980,10 +983,10 @@ $("pPerson").addEventListener("click",function(ev){var b=ev.target.closest("butt
   if(b.id==="pwSet"||b.id==="pwChange"||b.id==="pwRemove"){
     var old=$("pwOld")?$("pwOld").value:"",nw=$("pwNew").value;
     if(b.id!=="pwSet"&&!pwOk(old)){pwMsgText="目前密碼不正確。";renderPersonPanel();return}
-    if(b.id==="pwRemove"){try{localStorage.setItem(PW_KEY,"none")}catch(e){}pwMsgText="✔ 已取消密碼，之後打開直接進入。";renderPersonPanel();return}
+    if(b.id==="pwRemove"){try{localStorage.setItem(PW_KEY,"none")}catch(e){}pwMsgText="✔ 已取消密碼，之後打開直接進入。";renderPersonPanel();setTimeout(function(){var m=pwMsgText;navClose("pPerson");say(m)},1200);return}
     if(nw.length<4){pwMsgText="新密碼至少要 4 個字。";renderPersonPanel();return}
     try{localStorage.setItem(PW_KEY,sha256(PW_SALT+nw))}catch(e){}
-    pwMsgText=b.id==="pwSet"?"✔ 已設定密碼，下次打開要輸入。":"✔ 已變更密碼。";renderPersonPanel();return}
+    pwMsgText=b.id==="pwSet"?"✔ 已設定密碼，下次打開要輸入。":"✔ 已變更密碼。";renderPersonPanel();setTimeout(function(){var m=pwMsgText;navClose("pPerson");say(m)},1200);return}
   if(b.id==="btnAddP"){var v=$("newName").value.trim();if(!v)return;var np=newPerson(v,[]);store.people.push(np);store.cur=np.id;saveAll();afterStoreChange();renderPersonPanel();say("已新增「"+v+"」並切換過去。");return}
   if(b.dataset.rm){var p=store.people.filter(function(x){return x.id===b.dataset.rm})[0];if(!p||!confirm("確定刪除「"+p.name+"」和他的所有資料？這個動作無法復原（除非有備份）。"))return;
     store.people=store.people.filter(function(x){return x!==p});if(store.cur===p.id)store.cur=store.people[0].id;saveAll();afterStoreChange();renderPersonPanel()}});
@@ -1470,6 +1473,24 @@ window.addEventListener("storage",function(e){
     var cn="";store.people.forEach(function(x){if(x.id===store.cur)cn=x.name});store=n;store.people.forEach(function(x){if(x.name===cn)store.cur=x.id});
     afterStoreChange();say("已更新為另一個分頁剛儲存的最新資料。")}catch(err){}
 });
+
+/* ---------- 返回主畫面：每個面板都有「← 返回主畫面」，瀏覽器的「上一頁」也會關閉面板 ---------- */
+var NAV_IDS=["pPerson","pImport","pFile","pGh","admin"],navOpen={};
+function navEl(id){return document.getElementById(id)}
+function navClose(id,fromPop){var el=navEl(id);if(!el||el.hidden)return;el.hidden=true;if(id==="pPerson")pwMsgText="";
+  if(navOpen[id]){delete navOpen[id];if(!fromPop){try{history.back()}catch(e){}}}
+  window.scrollTo({top:0,behavior:"smooth"})}
+function navEnsure(){NAV_IDS.forEach(function(id){var el=navEl(id);if(!el)return;
+  if(el.hidden){if(navOpen[id]){delete navOpen[id];try{history.back()}catch(e){}}return}
+  var host=id==="admin"?el.querySelector(".adm-card"):el;
+  if(host&&!host.querySelector(":scope > .backbar")){var d=document.createElement("div");d.className="backbar";d.innerHTML='<button type="button" class="back-btn" data-back="'+id+'">← 返回主畫面</button>';host.insertBefore(d,host.firstChild)}
+  if(!navOpen[id]){navOpen[id]=1;try{history.pushState({panel:id},"")}catch(e){}}
+})}
+var navObs=new MutationObserver(navEnsure);
+NAV_IDS.forEach(function(id){var el=navEl(id);if(el)navObs.observe(el,{attributes:true,attributeFilter:["hidden"],childList:true})});
+document.addEventListener("click",function(ev){var b=ev.target.closest&&ev.target.closest("[data-back]");if(b){ev.preventDefault();navClose(b.dataset.back)}});
+window.addEventListener("popstate",function(){Object.keys(navOpen).forEach(function(id){delete navOpen[id];navClose(id,true)})});
+document.addEventListener("keydown",function(ev){if(ev.key==="Escape"){var k=Object.keys(navOpen);if(k.length)navClose(k[k.length-1])}});
 /* ---------- 啟動 ---------- */
 function pickNewest(s){var l=null;try{l=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
   if(l&&l.people&&(!s||(l.savedAt||0)>(s.savedAt||0)))return l;return s}
