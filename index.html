@@ -371,6 +371,43 @@ header #btnTheme .ic{font-size:12px}
 .backbar{position:sticky;top:0;z-index:3;display:flex;justify-content:flex-start;margin:-4px 0 10px;padding:4px 0;background:inherit}
 .back-btn{background:#34444a;color:#fff;border:0;border-radius:99px;font-weight:700;min-height:40px;padding:6px 16px}
 .back-btn:hover{background:#23323a}
+/* ---------- V1.4.0 版面精簡 ---------- */
+header{padding:10px 20px!important;gap:8px 20px;border-radius:12px}
+header h1{font-size:24px;line-height:1.2}
+header .sub{margin:2px 0 0;font-size:14px}
+header .hbtns{flex-direction:row!important;flex-wrap:wrap;align-items:center;gap:8px}
+header #btnTheme,header #btnRefresh{width:auto!important;min-height:34px!important;padding:4px 14px!important;font-size:14px!important}
+header select,header #btnPerson{min-height:34px}
+.wrap>.drop,.drop#drop{padding:8px 12px;gap:6px 12px;flex-wrap:nowrap}
+.drop#drop p{font-size:12.5px;line-height:1.45;flex:0 1 240px;color:var(--muted)}
+.drop#drop p strong{color:var(--ink);font-weight:600}
+.drop#drop .actions{flex:1 1 auto;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.drop#drop .acts{gap:6px}
+.drop#drop .actions button{min-height:36px;font-size:14px;padding:4px 12px;white-space:nowrap}
+.drop#drop .acts .no{width:19px;height:19px;font-size:12px;margin-right:5px}
+.adm-tools{display:flex;flex-wrap:wrap;gap:8px}
+.adm-tools button{flex:1 1 calc(50% - 8px);min-height:40px;font-size:14px}
+#btnGh{background:#24292f;color:#fff;border:1px solid #24292f;font-weight:700;border-radius:8px}
+.adm-filest{font-size:13px}
+@media (max-width:900px){.drop#drop{flex-wrap:wrap}.drop#drop p{flex:1 1 100%}.drop#drop .actions{justify-content:flex-start}}
+@media (max-width:600px){header{padding:10px 14px!important}header h1{font-size:20px}.drop#drop .actions button{flex:1 1 calc(50% - 6px);white-space:normal;line-height:1.2;font-size:13.5px;padding:4px 8px}}
+/* V1.4.2 重點頁卡片上方改成淺淡藍細線 */
+#v-focus .card{border-top:3px solid #cfe8f7}
+:root[data-theme="dark"] #v-focus .card{border-top-color:#2c4a5c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #v-focus .card{border-top-color:#2c4a5c}}
+/* V1.4.3 最近一次結果分類：縮小放到分頁列右邊 */
+nav .statbar{margin-left:auto;display:flex;gap:6px;align-items:center;flex:none}
+nav .statbar[hidden]{display:none}
+button.stat.mini{flex-direction:row;align-items:baseline;gap:5px;padding:5px 12px;border-radius:99px;min-height:34px;box-shadow:none}
+button.stat.mini .sn{font-size:16px!important;line-height:1}
+button.stat.mini .sl{font-size:13px}
+@media (max-width:900px){nav{flex-wrap:wrap}nav .statbar{margin-left:0;flex-basis:100%}nav .statbar button{flex:1 1 0;justify-content:center}}
+/* V1.4.3 資料輸入收合按鈕 */
+header #btnIO{min-height:34px;padding:4px 14px;font-size:14px;border-radius:99px;font-weight:700}
+header #btnIO.on{background:#fff;color:#0f6e73;border-color:#fff}
+.drop[hidden]{display:none!important}
+/* V1.4.4 曲線卡片上方色線改細 */
+.labs .lab{border-top-width:2px!important}
 </style>
 </head>
 <body>
@@ -396,6 +433,18 @@ header #btnTheme .ic{font-size:12px}
     <div class="adm-btns"><button type="submit" class="adm-save">儲存新密碼</button><button type="button" id="admReset">恢復預設密碼</button></div>
     <p class="adm-msg" id="admMsg" role="status"></p>
     <hr>
+    <h3>進階：備份與跨裝置共享</h3>
+    <p class="sub adm-filest" id="fileSt"></p>
+    <div class="adm-tools" id="admTools">
+      <button type="button" id="btnFile">連結資料檔</button>
+      <button type="button" id="btnBackup">下載備份</button>
+      <button type="button" id="btnRestore">讀取備份</button>
+      <button type="button" id="btnGh">☁ GitHub 共享</button>
+      <button type="button" id="btnInstall" hidden>安裝成桌面 App</button>
+      <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+    </div>
+    <p class="sub">平常只要用主畫面的 ③ 儲存。這裡是換電腦、手機共用時才需要的進階功能。</p>
+    <hr>
     <button type="button" id="admLock" class="adm-lock">🔒 立即鎖定畫面</button>
     <p class="sub">密碼只存在這台裝置的這個瀏覽器，手機和電腦要各自設定。忘記密碼時，清除這個網站的瀏覽資料就會回到預設密碼，但已保留的健康資料也會一起清掉。</p>
   </form>
@@ -403,26 +452,18 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：所有面板加「返回主畫面」、上一頁可關閉面板">V1.3.1</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：曲線卡片上方色線改細">V1.4.4</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
       <span class="who"><label for="person" class="sub">目前的人</label><select id="person" aria-label="目前的人"></select><button type="button" id="btnPerson">管理成員</button></span>
-      <button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button>
+      <button type="button" id="btnIO" aria-expanded="false" aria-controls="drop" title="匯入、儲存、清除、匯出資料">📥 資料輸入 ▾</button><button id="btnTheme" type="button" aria-label="切換深色或淺色">☾ 深色</button><button type="button" id="btnRefresh">↻ 重新整理資料</button>
     </div>
   </header>
 
-  <div class="filebar card" id="filebar">
-    <span class="st" id="fileSt"></span>
-    <button type="button" id="btnFile">連結資料檔</button>
-    <button type="button" id="btnBackup">下載備份</button>
-    <button type="button" id="btnRestore">讀取備份</button>
-    <button type="button" id="btnGh">☁ GitHub 共享</button>
-    <button type="button" id="btnInstall" hidden>安裝成桌面 App</button>
-    <input type="file" id="restoreFile" accept=".json,application/json" hidden>
-  </div>
+  <div class="filebar card" id="filebar" style="display:none"></div>
 
-  <div class="drop" id="drop">
+  <div class="drop" id="drop" hidden>
     <p><strong>把健康存摺 XML 檔、統計 Excel，或報告的截圖／照片拖到這裡</strong>。截圖和照片會自動辨識文字，核對後才存入。資料只在這台電腦處理，不會上傳。</p>
     <div class="actions">
       <input type="file" id="file" accept=".xml,.xlsx,text/xml" multiple hidden>
@@ -450,6 +491,7 @@ header #btnTheme .ic{font-size:12px}
     <button role="tab" type="button" data-v="meds" aria-selected="false">用藥</button>
     <button role="tab" type="button" data-v="dental" aria-selected="false">牙科</button>
     <button role="tab" type="button" data-v="other" aria-selected="false">疫苗與影像</button>
+    <span class="statbar" id="statBar" hidden></span>
   </nav>
 
   <section class="view" id="v-focus"></section>
@@ -803,7 +845,9 @@ function gidx(s){for(var i=0;i<GROUPS.length;i++){if(GROUPS[i].re.test(s.name+" 
 function gcls(s){var i=gidx(s);return i<0?"gx":"g"+i}
 function gtag(s){var i=gidx(s);return i<0?"":'<span class="gtag g'+i+'">'+esc(GROUPS[i].name)+'</span>'}
 function statBlocks(S){var c={hi:0,lo:0,ok:0,"":0};S.forEach(function(x){c[x.lastp.f||""]++});
-  return'<div class="card"><h2>最近一次結果分類</h2><div class="stats">'+[["hi","最近偏高","var(--crit)"],["lo","最近偏低","var(--c6)"],["ok","範圍內","var(--good)"],["","無參考值或文字結果","#6b7f82"]].map(function(r){return'<button type="button" class="stat" data-f="'+r[0]+'" style="--sc:'+r[2]+'"><span class="sn">'+c[r[0]]+'</span><span class="sl">'+r[1]+'</span></button>'}).join("")+'</div><p class="sub" style="margin-top:8px">點色塊可一次選取該類項目，下方會畫出曲線。</p></div>'}
+  var bar=$("statBar");if(bar)bar.innerHTML=[["hi","偏高","var(--crit)"],["lo","偏低","var(--c6)"],["ok","範圍內","var(--good)"],["","無參考值","#6b7f82"]].map(function(r){return'<button type="button" class="stat mini" data-f="'+r[0]+'" style="--sc:'+r[2]+'" title="最近一次結果：'+r[1]+'。點一下選取這一類，下方畫出曲線"><span class="sn">'+c[r[0]]+'</span><span class="sl">'+r[1]+'</span></button>'}).join("");
+  statBarShow();return""}
+function statBarShow(){var bar=$("statBar"),t=document.querySelector('#tabs [data-v="labs"]');if(bar)bar.hidden=!(t&&t.getAttribute("aria-selected")==="true"&&bar.innerHTML)}
 function mini(s){
   var P=s.num,W=110,H=30,pd=4,bad=function(p){return p.f==="hi"||p.f==="lo"};
   if(!P.length)return'<span class="sub">—</span>';
@@ -825,7 +869,7 @@ function saveSel(){if(state.sample)return;person().sel=Object.keys(state.sel);sa
 function avgOf(vs){return vs.length?+(vs.reduce(function(a,b){return a+b},0)/vs.length).toFixed(3):""}
 function renderLabs(d){
   var S=labSeries(d);state.series=S;
-  if(!S.length){$("v-labs").innerHTML='<div class="card"><p class="sub">這份資料沒有檢驗結果。</p></div>';return}
+  if(!S.length){$("v-labs").innerHTML='<div class="card"><p class="sub">這份資料沒有檢驗結果。</p></div>';if($("statBar"))$("statBar").innerHTML="";statBarShow();return}
   if(!state.selInit){state.selInit=true;var keep=state.sample?null:person().sel;
     state.sel={};if(keep&&!state.sample)keep.forEach(function(k){state.sel[k]=1});
     if(!selKeys(S).length)S.filter(function(x){return x.num.length>=2}).forEach(function(x){state.sel[x.key]=1})}
@@ -898,6 +942,7 @@ function renderOther(d){
 function render(){
   var d=state.data,p=person();
   $("sampleTag").hidden=!state.sample;
+  if(typeof ioAuto==="function")ioAuto();
   $("metaLine").textContent=state.sample?"「"+p.name+"」還沒有資料：按 ① 匯入 XML，再按 ③ 儲存。"
     :p.name+(p.data?"・身分證號 "+(p.data.meta.id||"-")+"・健康存摺下載日 "+(fmtD(p.data.meta.dl)||"-"):"")+"・自行紀錄 "+p.manual.length+" 筆";
   renderOverview(d);renderLabs(d);renderFocus(d);renderVisits(d);renderMeds(d);renderDental(d);renderOther(d);
@@ -1016,7 +1061,7 @@ $("btnRefresh").addEventListener("click",function(){
   labSeries(state.data).forEach(function(x){if(x.num.length>=2)state.sel[x.key]=1});
   saveSel();render();
   var n=Object.keys(state.sel).length;
-  [].forEach.call($("tabs").children,function(x){var on=x.dataset.v==="labs";x.setAttribute("aria-selected",on?"true":"false");$("v-"+x.dataset.v).hidden=!on});
+  [].forEach.call($("tabs").querySelectorAll("button[data-v]"),function(x){var on=x.dataset.v==="labs";x.setAttribute("aria-selected",on?"true":"false");$("v-"+x.dataset.v).hidden=!on});statBarShow();
   say((state.sample?"（目前是示範資料）":"")+"已重新整理：共 "+state.series.length+" 項檢驗，畫出 "+n+" 條曲線（只有一次數值或文字結果的項目無法畫曲線）。");
   var t=$("labSel");if(t&&t.scrollIntoView)t.scrollIntoView({behavior:"smooth",block:"start"});
 });
@@ -1350,8 +1395,11 @@ var instEv=null;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();instEv=e;$("btnInstall").hidden=false});
 $("btnInstall").addEventListener("click",function(){if(!instEv)return;instEv.prompt();instEv.userChoice.then(function(){instEv=null;$("btnInstall").hidden=true})});
 if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register("sw.js").catch(function(){});
-$("tabs").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
-  [].forEach.call(this.children,function(x){x.setAttribute("aria-selected",x===b?"true":"false");$("v-"+x.dataset.v).hidden=x!==b})});
+$("tabs").addEventListener("click",function(ev){var b=ev.target.closest("button[data-v]");if(!b)return;
+  [].forEach.call(this.querySelectorAll("button[data-v]"),function(x){x.setAttribute("aria-selected",x===b?"true":"false");$("v-"+x.dataset.v).hidden=x!==b});statBarShow()});
+$("statBar").addEventListener("click",function(ev){var b=ev.target.closest("button.stat");if(!b)return;var f=b.dataset.f;state.sel={};
+  (state.series||[]).forEach(function(x){if((x.lastp.f||"")===f)state.sel[x.key]=1});
+  [].forEach.call($("v-labs").querySelectorAll("input.pick"),function(c){c.checked=!!state.sel[c.dataset.k]});saveSel();renderSel()});
 $("v-visits").addEventListener("click",function(ev){var b=ev.target.closest("button.exp");if(!b)return;var r=$("det"+b.dataset.i),open=r.hidden;r.hidden=!open;b.textContent=open?"－":"＋";b.setAttribute("aria-expanded",open?"true":"false")});
 $("v-labs").addEventListener("change",function(ev){var c=ev.target;if(!c.classList.contains("pick"))return;if(c.checked)state.sel[c.dataset.k]=1;else delete state.sel[c.dataset.k];saveSel();renderSel()});
 $("v-labs").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
@@ -1453,6 +1501,10 @@ $("admClose").addEventListener("click",closeAdmin);
 $("admin").addEventListener("click",function(ev){if(ev.target===this)closeAdmin()});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&!$("admin").hidden)closeAdmin()});
 $("admLock").addEventListener("click",lockNow);
+/* 進階功能從 ⚙ 管理開啟面板：先關掉管理視窗，沿用它的上一頁紀錄，再把面板捲到眼前 */
+$("admTools").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b||(b.id!=="btnFile"&&b.id!=="btnGh"))return;
+  if(navOpen.admin){delete navOpen.admin;navReuse=1}$("admin").hidden=true;
+  setTimeout(function(){var pn=$(b.id==="btnFile"?"pFile":"pGh");if(pn&&!pn.hidden)pn.scrollIntoView({behavior:"smooth",block:"start"})},50)},true);
 $("admForm").addEventListener("submit",function(ev){ev.preventDefault();
   var o=$("admOld").value,n=$("admNew").value,n2=$("admNew2").value,m=$("admMsg");
   var bad=function(t){m.textContent=t;m.className="adm-msg err"};
@@ -1475,7 +1527,7 @@ window.addEventListener("storage",function(e){
 });
 
 /* ---------- 返回主畫面：每個面板都有「← 返回主畫面」，瀏覽器的「上一頁」也會關閉面板 ---------- */
-var NAV_IDS=["pPerson","pImport","pFile","pGh","admin"],navOpen={};
+var NAV_IDS=["pPerson","pImport","pFile","pGh","admin"],navOpen={},navReuse=0;
 function navEl(id){return document.getElementById(id)}
 function navClose(id,fromPop){var el=navEl(id);if(!el||el.hidden)return;el.hidden=true;if(id==="pPerson")pwMsgText="";
   if(navOpen[id]){delete navOpen[id];if(!fromPop){try{history.back()}catch(e){}}}
@@ -1484,13 +1536,40 @@ function navEnsure(){NAV_IDS.forEach(function(id){var el=navEl(id);if(!el)return
   if(el.hidden){if(navOpen[id]){delete navOpen[id];try{history.back()}catch(e){}}return}
   var host=id==="admin"?el.querySelector(".adm-card"):el;
   if(host&&!host.querySelector(":scope > .backbar")){var d=document.createElement("div");d.className="backbar";d.innerHTML='<button type="button" class="back-btn" data-back="'+id+'">← 返回主畫面</button>';host.insertBefore(d,host.firstChild)}
-  if(!navOpen[id]){navOpen[id]=1;try{history.pushState({panel:id},"")}catch(e){}}
+  if(!navOpen[id]){navOpen[id]=1;try{if(navReuse){navReuse=0;history.replaceState({panel:id},"")}else history.pushState({panel:id},"")}catch(e){}}
 })}
 var navObs=new MutationObserver(navEnsure);
 NAV_IDS.forEach(function(id){var el=navEl(id);if(el)navObs.observe(el,{attributes:true,attributeFilter:["hidden"],childList:true})});
 document.addEventListener("click",function(ev){var b=ev.target.closest&&ev.target.closest("[data-back]");if(b){ev.preventDefault();navClose(b.dataset.back)}});
 window.addEventListener("popstate",function(){Object.keys(navOpen).forEach(function(id){delete navOpen[id];navClose(id,true)})});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape"){var k=Object.keys(navOpen);if(k.length)navClose(k[k.length-1])}});
+
+
+/* ---------- 資料輸入列：平常收起來，按「📥 資料輸入」才展開 ---------- */
+function ioSet(open,remember){var d=$("drop"),b=$("btnIO");d.hidden=!open;b.setAttribute("aria-expanded",open?"true":"false");b.textContent=open?"📥 資料輸入 ▴":"📥 資料輸入 ▾";b.classList.toggle("on",open);
+  if(remember)try{localStorage.setItem(KEY+"-io",open?"1":"0")}catch(e){}}
+$("btnIO").addEventListener("click",function(){ioSet($("drop").hidden,true)});
+var ioFirst=true;
+function ioAuto(){var empty=!!state.sample,pref=null;try{pref=localStorage.getItem(KEY+"-io")}catch(e){}
+  if(empty)ioSet(true,false);else if(ioFirst)ioSet(pref==="1",false);ioFirst=false}
+document.addEventListener("dragenter",function(ev){if(ev.dataTransfer&&[].indexOf.call(ev.dataTransfer.types||[],"Files")>=0&&$("drop").hidden)ioSet(true,false)});
+/* ---------- 自動更新：資料夾裡的程式換新版時，開著的頁面自己重新載入，不用重新開啟 ---------- */
+var APP_VER="1.4.4";
+function verCheck(){
+  if(document.hidden)return;
+  var old=document.getElementById("verProbe");if(old)old.remove();
+  var sc=document.createElement("script");sc.id="verProbe";sc.src="version.js?t="+Date.now();
+  sc.onload=function(){var v=window.ROBOT_VER;if(!v||v===APP_VER)return;
+    var k=KEY+"-reloaded-for";try{if(sessionStorage.getItem(k)===v)return;sessionStorage.setItem(k,v)}catch(e){}
+    var busy=["pImport","pPerson","pFile","pGh"].some(function(id){var e=document.getElementById(id);return e&&!e.hidden})||(document.getElementById("admin")&&!document.getElementById("admin").hidden);
+    if(busy){try{sessionStorage.removeItem(k)}catch(e){}return}
+    try{if(store)saveAll()}catch(e){}
+    location.reload()};
+  sc.onerror=function(){};
+  document.head.appendChild(sc)}
+document.addEventListener("visibilitychange",verCheck);
+window.addEventListener("focus",verCheck);
+setInterval(verCheck,20000);
 /* ---------- 啟動 ---------- */
 function pickNewest(s){var l=null;try{l=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
   if(l&&l.people&&(!s||(l.savedAt||0)>(s.savedAt||0)))return l;return s}
