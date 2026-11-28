@@ -359,6 +359,13 @@ header #btnTheme .ic{font-size:12px}
 .gh-grid input{font:inherit;font-size:16px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-height:42px}
 .gh-err{color:var(--crit)!important;font-weight:700}
 #pGh ol{padding-left:1.4em;margin:6px 0}#pGh code{background:var(--bg);padding:0 4px;border-radius:4px}
+/* ---------- ③ 長期儲存 ---------- */
+#btnKeep{--fc:#0f8f96;background:var(--fc);color:#fff;border:1px solid var(--fc);font-weight:700;border-radius:8px;box-shadow:0 2px 6px color-mix(in srgb,var(--fc) 30%,transparent)}
+#btnKeep:hover{background:var(--fc);filter:brightness(1.1)}
+#btnKeep.keep-ok{--fc:#2f9e5b}
+#btnKeep.keep-need{animation:keepPulse 2s ease-in-out infinite}
+@keyframes keepPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,#0f8f96 55%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,#0f8f96 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){#btnKeep.keep-need{animation:none}}
 </style>
 </head>
 <body>
@@ -391,7 +398,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：開啟時自動合併舊版統計工具的資料">V1.2.3</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：新增「③ 長期儲存」按鈕">V1.2.4</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -418,8 +425,9 @@ header #btnTheme .ic{font-size:12px}
       <span class="acts">
       <button type="button" id="btnPick"><span class="no">1</span>匯入資料（XML／Excel）</button>
       <button type="button" id="btnImg"><span class="no">2</span>匯入照片／截圖</button>
-      <button type="button" id="btnClear"><span class="no">3</span>清除資料</button>
-      <button type="button" id="btnXlsx"><span class="no">4</span>匯出 Excel</button>
+      <button type="button" id="btnKeep" title="把資料長期保存，不會因為清除瀏覽器而遺失"><span class="no">3</span><span id="keepTxt">長期儲存</span></button>
+      <button type="button" id="btnClear"><span class="no">4</span>清除資料</button>
+      <button type="button" id="btnXlsx"><span class="no">5</span>匯出 Excel</button>
       </span>
       <button type="button" id="btnPaste">貼上文字</button>
       <button type="button" id="btnManual">手動新增</button>
@@ -514,6 +522,7 @@ function fileStatus(){
   else if(fileH)st.innerHTML='上次用的資料檔是 <strong>'+esc(fileH.name)+'</strong>，按「重新連結」繼續自動存檔。';
   else if(hasFS)st.innerHTML='資料目前只存在這個瀏覽器（'+n+' 位成員：'+esc(names)+'）。按「連結資料檔」存成檔案，放在 iCloud、Google 雲端硬碟或 OneDrive 的資料夾，兩台電腦就能共用。';
   else st.innerHTML='資料存在這個瀏覽器（'+n+' 位成員：'+esc(names)+'）。這個瀏覽器不支援自動存檔到檔案，要換電腦時請用「下載備份」→ 另一台「讀取備份」。';
+  var kb=$("btnKeep");if(kb){var ok=!!(fileH&&fileOk);kb.classList.toggle("keep-ok",ok);kb.classList.toggle("keep-need",!ok);$("keepTxt").textContent=ok?"長期儲存 ✓":"長期儲存";kb.title=ok?"已連結資料檔「"+fileH.name+"」，每次變更都會自動長期保存":"資料目前只在這個瀏覽器，按一下長期保存"}
   $("btnFile").hidden=!hasFS;$("btnFile").textContent=fileH&&!fileOk?"重新連結":fileH?"更換資料檔":"連結資料檔";
 }
 function afterStoreChange(){state.selInit=false;state.q="";state.year="";refreshData();renderPersons();render()}
@@ -1213,6 +1222,23 @@ pFile.addEventListener("click",function(ev){var b=ev.target.closest("button");if
   if(b.id==="fClose"){pFile.hidden=true;return}
   if(b.id==="fCreate")window.showSaveFilePicker({suggestedName:"健康記錄資料.json",types:FTYPES}).then(function(h){pFile.hidden=true;return adoptHandle(h,"create")}).catch(function(e){if(e&&e.name!=="AbortError")say("無法建立資料檔："+e.message,true)});
   if(b.id==="fOpen")window.showOpenFilePicker({types:FTYPES}).then(function(a){var h=a[0];return h.requestPermission({mode:"readwrite"}).then(function(r){if(r!=="granted")throw new Error("沒有寫入權限");pFile.hidden=true;return adoptHandle(h,"open")})}).catch(function(e){if(e&&e.name!=="AbortError")say("無法開啟資料檔："+e.message,true)});
+});
+
+/* ---------- ③ 長期儲存 ---------- */
+function keepStamp(){var d=new Date();return("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
+function keepDone(where){var t="已長期儲存（"+keepStamp()+"）："+where+"。";if(typeof ghOn==="function"&&ghOn()){ghSync("push");t+="同時上傳到 GitHub。"}say(t);fileStatus()}
+$("btnKeep").addEventListener("click",function(){
+  saveAll();
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+  if(fileH&&fileOk){writeFile().then(function(){keepDone("資料檔「"+fileH.name+"」")});return}
+  if(fileH&&!fileOk&&fileH.requestPermission){fileH.requestPermission({mode:"readwrite"}).then(function(r){if(r!=="granted")throw new Error("沒有取得資料檔的權限");return adoptHandle(fileH,"auto")}).then(function(){keepDone("資料檔「"+fileH.name+"」")}).catch(function(e){say("長期儲存失敗："+(e&&e.message||e),true)});return}
+  if(hasFS&&window.showSaveFilePicker){
+    say("請選擇長期儲存的位置，建議存到「文件\\健康存摺統計工具\\08_資料備份_JSON」。之後每次變更都會自動存進這個檔案。");
+    window.showSaveFilePicker({suggestedName:"健康記錄資料.json",types:FTYPES}).then(function(h){return adoptHandle(h,"create").then(function(){keepDone("資料檔「"+h.name+"」，之後每次變更都會自動存檔")})})
+      .catch(function(e){if(e&&e.name==="AbortError")say("已取消。資料仍存在這個瀏覽器，按「③ 長期儲存」可再選擇存檔位置。");else say("長期儲存失敗："+(e&&e.message||e),true)});
+    return}
+  downloadBlob("健康記錄資料_"+today()+".json",new Blob([JSON.stringify(store,null,1)],{type:"application/json"}));
+  keepDone("已下載資料檔到這台裝置（這個瀏覽器不支援自動存檔，之後有更新請再按一次）");
 });
 $("btnBackup").addEventListener("click",function(){downloadBlob("健康記錄備份_"+today()+".json",new Blob([JSON.stringify(store,null,1)],{type:"application/json"}))});
 $("btnRestore").addEventListener("click",function(){$("restoreFile").click()});
