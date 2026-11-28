@@ -372,7 +372,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="lock" id="lock">
   <form class="lock-card" id="lockForm" autocomplete="off">
     <svg class="lock-ic" viewBox="0 0 48 48" width="52" height="52" aria-hidden="true"><rect x="9" y="21" width="30" height="21" rx="5" fill="#2f7fd6"/><path d="M15 21v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#0f6e73" stroke-width="4.5" stroke-linecap="round"/><circle cx="24" cy="31" r="3.2" fill="#fff"/><rect x="22.6" y="32" width="2.8" height="5.5" rx="1.4" fill="#fff"/></svg>
-    <h2>健康存摺統計工具</h2>
+    <h2>健康記錄機器人</h2>
     <p class="sub">請輸入使用者密碼</p>
     <input type="password" id="lockPw" aria-label="使用者密碼" autocomplete="current-password">
     <label class="show" for="lockShow"><input type="checkbox" id="lockShow"> 顯示密碼</label>
@@ -398,7 +398,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：自動載入本機資料檔；「貼上文字」併入「手動新增」">V1.2.7</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：本機資料檔每次開啟自動補回、多分頁同步">V1.2.8</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -1448,6 +1448,13 @@ $("admReset").addEventListener("click",function(){var m=$("admMsg");
   try{localStorage.removeItem(PW_KEY)}catch(e){}$("admOld").value="";m.textContent="已恢復為預設密碼。";m.className="adm-msg ok"});
 var wasOpen=false;try{wasOpen=sessionStorage.getItem(KEY+"-unlocked")==="1"}catch(e){}
 if(wasOpen)unlock();else setTimeout(function(){$("lockPw").focus()},50);
+/* ---------- 多個分頁同時開著：別的分頁存檔後，這裡自動換成最新資料，避免舊分頁蓋掉新資料 ---------- */
+window.addEventListener("storage",function(e){
+  if(e.key!==KEY||!e.newValue||!store)return;
+  try{var n=fixStore(JSON.parse(e.newValue));if(!n||(n.savedAt||0)<=(store.savedAt||0))return;
+    var cn="";store.people.forEach(function(x){if(x.id===store.cur)cn=x.name});store=n;store.people.forEach(function(x){if(x.name===cn)store.cur=x.id});
+    afterStoreChange();say("已更新為另一個分頁剛儲存的最新資料。")}catch(err){}
+});
 /* ---------- 啟動 ---------- */
 function pickNewest(s){var l=null;try{l=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
   if(l&&l.people&&(!s||(l.savedAt||0)>(s.savedAt||0)))return l;return s}
@@ -1470,12 +1477,15 @@ function boot(s){
   /* 本機資料檔 health-data.js（放在程式旁邊）：開啟時自動把裡面每個人的資料合併進來，只合併一次、自動去重 */
   try{var P=window.HEALTH_PRELOAD;
     if(P&&P.people&&P.people.length){var pfp=String(P.id||"")+":"+P.people.length;
-      if(localStorage.getItem(KEY+"-preload")!==pfp){var got=[];
+      /* 每次開啟都對照本機資料檔，缺的補回（重複的自動去除），所以資料不會因為別的分頁或清除瀏覽器而遺失 */
+      {var got=[];
         P.people.forEach(function(pp){if(!pp||!pp.data)return;var tgt=null;store.people.forEach(function(x){if(!tgt&&x.name===pp.name)tgt=x});
           if(!tgt){tgt=newPerson(pp.name,[]);store.people.push(tgt)}
-          tgt.data=sortData(tgt.data?merge(tgt.data,pp.data):dedupeData(pp.data));got.push(pp.name+" "+tgt.data.labs.length+" 筆檢驗")});
+          var n0=tgt.data?tgt.data.labs.length+tgt.data.visits.length+tgt.data.dental.length:-1;
+          tgt.data=sortData(tgt.data?merge(tgt.data,pp.data):dedupeData(pp.data));
+          if(tgt.data.labs.length+tgt.data.visits.length+tgt.data.dental.length!==n0)got.push(pp.name+" "+tgt.data.labs.length+" 筆檢驗")});
         localStorage.setItem(KEY+"-preload",pfp);
-        if(got.length){migMsg=(migMsg?migMsg+" ":"")+"已載入本機資料檔：「"+got.join("、")+"」。";saveAll()}}}}catch(e){}
+        if(got.length){migMsg=(migMsg?migMsg+" ":"")+"已從本機資料檔補回：「"+got.join("、")+"」。";saveAll()}}}}catch(e){}
   refreshData();renderPersons();render();
   if(migMsg){if(!s)saveAll();say(migMsg)}
   idb.get("fileHandle").then(function(h){if(!h||!h.queryPermission)return;fileH=h;return h.queryPermission({mode:"readwrite"}).then(function(r){fileOk=r==="granted";if(fileOk)return adoptHandle(h,"auto");fileStatus()})}).catch(function(){}).then(fileStatus);
