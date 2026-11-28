@@ -398,7 +398,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：新增「③ 長期儲存」按鈕">V1.2.4</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：③ 儲存改為直接儲存，不跳視窗">V1.2.5</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -425,7 +425,7 @@ header #btnTheme .ic{font-size:12px}
       <span class="acts">
       <button type="button" id="btnPick"><span class="no">1</span>匯入資料（XML／Excel）</button>
       <button type="button" id="btnImg"><span class="no">2</span>匯入照片／截圖</button>
-      <button type="button" id="btnKeep" title="把資料長期保存，不會因為清除瀏覽器而遺失"><span class="no">3</span><span id="keepTxt">長期儲存</span></button>
+      <button type="button" id="btnKeep" title="按一下立即儲存（不會跳出視窗）"><span class="no">3</span><span id="keepTxt">儲存</span></button>
       <button type="button" id="btnClear"><span class="no">4</span>清除資料</button>
       <button type="button" id="btnXlsx"><span class="no">5</span>匯出 Excel</button>
       </span>
@@ -522,7 +522,7 @@ function fileStatus(){
   else if(fileH)st.innerHTML='上次用的資料檔是 <strong>'+esc(fileH.name)+'</strong>，按「重新連結」繼續自動存檔。';
   else if(hasFS)st.innerHTML='資料目前只存在這個瀏覽器（'+n+' 位成員：'+esc(names)+'）。按「連結資料檔」存成檔案，放在 iCloud、Google 雲端硬碟或 OneDrive 的資料夾，兩台電腦就能共用。';
   else st.innerHTML='資料存在這個瀏覽器（'+n+' 位成員：'+esc(names)+'）。這個瀏覽器不支援自動存檔到檔案，要換電腦時請用「下載備份」→ 另一台「讀取備份」。';
-  var kb=$("btnKeep");if(kb){var ok=!!(fileH&&fileOk);kb.classList.toggle("keep-ok",ok);kb.classList.toggle("keep-need",!ok);$("keepTxt").textContent=ok?"長期儲存 ✓":"長期儲存";kb.title=ok?"已連結資料檔「"+fileH.name+"」，每次變更都會自動長期保存":"資料目前只在這個瀏覽器，按一下長期保存"}
+  var kb=$("btnKeep");if(kb){var ok=!!keepLast;kb.classList.toggle("keep-ok",ok);kb.classList.remove("keep-need");$("keepTxt").textContent=ok?"已儲存 ✓ "+keepLast:"儲存";kb.title="按一下立即儲存（不會跳出視窗）"}
   $("btnFile").hidden=!hasFS;$("btnFile").textContent=fileH&&!fileOk?"重新連結":fileH?"更換資料檔":"連結資料檔";
 }
 function afterStoreChange(){state.selInit=false;state.q="";state.year="";refreshData();renderPersons();render()}
@@ -1226,19 +1226,15 @@ pFile.addEventListener("click",function(ev){var b=ev.target.closest("button");if
 
 /* ---------- ③ 長期儲存 ---------- */
 function keepStamp(){var d=new Date();return("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
-function keepDone(where){var t="已長期儲存（"+keepStamp()+"）："+where+"。";if(typeof ghOn==="function"&&ghOn()){ghSync("push");t+="同時上傳到 GitHub。"}say(t);fileStatus()}
-$("btnKeep").addEventListener("click",function(){
-  saveAll();
+var keepLast="";
+$("btnKeep").addEventListener("click",function(){ /* 像 Enter 一樣直接儲存，不跳任何視窗 */
+  store.savedAt=Date.now();saveAll();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-  if(fileH&&fileOk){writeFile().then(function(){keepDone("資料檔「"+fileH.name+"」")});return}
-  if(fileH&&!fileOk&&fileH.requestPermission){fileH.requestPermission({mode:"readwrite"}).then(function(r){if(r!=="granted")throw new Error("沒有取得資料檔的權限");return adoptHandle(fileH,"auto")}).then(function(){keepDone("資料檔「"+fileH.name+"」")}).catch(function(e){say("長期儲存失敗："+(e&&e.message||e),true)});return}
-  if(hasFS&&window.showSaveFilePicker){
-    say("請選擇長期儲存的位置，建議存到「文件\\健康存摺統計工具\\08_資料備份_JSON」。之後每次變更都會自動存進這個檔案。");
-    window.showSaveFilePicker({suggestedName:"健康記錄資料.json",types:FTYPES}).then(function(h){return adoptHandle(h,"create").then(function(){keepDone("資料檔「"+h.name+"」，之後每次變更都會自動存檔")})})
-      .catch(function(e){if(e&&e.name==="AbortError")say("已取消。資料仍存在這個瀏覽器，按「③ 長期儲存」可再選擇存檔位置。");else say("長期儲存失敗："+(e&&e.message||e),true)});
-    return}
-  downloadBlob("健康記錄資料_"+today()+".json",new Blob([JSON.stringify(store,null,1)],{type:"application/json"}));
-  keepDone("已下載資料檔到這台裝置（這個瀏覽器不支援自動存檔，之後有更新請再按一次）");
+  var where="已存在這台電腦，關掉再開資料都還在";
+  var p=Promise.resolve();
+  if(fileH&&fileOk)p=writeFile().then(function(){where+="，也已寫入資料檔「"+fileH.name+"」"});
+  p.then(function(){var t="✔ 已儲存（"+keepStamp()+"）："+where+"。";if(typeof ghOn==="function"&&ghOn()){ghSync("push");t+="同時上傳到 GitHub。"}
+    say(t);keepLast=keepStamp();fileStatus()});
 });
 $("btnBackup").addEventListener("click",function(){downloadBlob("健康記錄備份_"+today()+".json",new Blob([JSON.stringify(store,null,1)],{type:"application/json"}))});
 $("btnRestore").addEventListener("click",function(){$("restoreFile").click()});
