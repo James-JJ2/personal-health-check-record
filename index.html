@@ -398,7 +398,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：成員 James／CC、資料雙重保存、空白成員不再顯示示範資料">V1.2.6</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：自動載入本機資料檔；「貼上文字」併入「手動新增」">V1.2.7</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -429,7 +429,6 @@ header #btnTheme .ic{font-size:12px}
       <button type="button" id="btnClear"><span class="no">4</span>清除資料</button>
       <button type="button" id="btnXlsx"><span class="no">5</span>匯出 Excel</button>
       </span>
-      <button type="button" id="btnPaste">貼上文字</button>
       <button type="button" id="btnManual">手動新增</button>
     </div>
   </div>
@@ -462,6 +461,7 @@ header #btnTheme .ic{font-size:12px}
 </div>
 
 <script src="lib/xlsx.full.min.js"></script>
+<script src="health-data.js" onerror="void 0"></script>
 <script>
 (function(){
 "use strict";
@@ -598,7 +598,7 @@ function parseXlsx(buf){
   return d;
 }
 function merge(a,b){
-  if(!a)return b;
+  if(!a)a={meta:b.meta,visits:[],dental:[],vacc:[],labs:[],imaging:[]};
   var out={meta:(b.meta.dl||"")>=(a.meta.dl||"")?b.meta:a.meta};
   /* 以「同一筆紀錄」的關鍵欄位判斷重複（XML 與匯出的 Excel 欄位格式不同，不能整筆比對） */
   var T=function(x){return String(x==null?"":x).replace(/\s+/g," ").trim().toUpperCase()};
@@ -606,7 +606,7 @@ function merge(a,b){
   var KF={visits:function(r){return JSON.stringify(r)},
     dental:function(r){return[r.date,T(r.inst),r.seq,T(r.dx),+r.copay||0,+r.pts||0,(r.items||[]).map(function(x){return T(x.code)+"*"+(+x.qty||0)+"@"+T(x.tooth)}).join(",")].join("|")},
     vacc:function(r){return[r.date,T(r.name)].join("|")},
-    labs:function(r){return[r.date,r.visit,T(r.code),T(r.item),NV(r.result)].join("|")},
+    labs:function(r){return[r.date,r.visit,T(r.inst),T(r.code),T(r.item),NV(r.result)].join("|")},
     imaging:function(r){return[r.date,T(r.code),T(r.name)].join("|")}};
   ["visits","dental","vacc","labs","imaging"].forEach(function(k){
     var seen={},arr=[];(a[k]||[]).concat(b[k]||[]).forEach(function(r){var s=KF[k](r);if(!seen[s]){seen[s]=1;arr.push(r)}});out[k]=arr;
@@ -1122,7 +1122,7 @@ function syncImport(){
 }
 function renderImport(){
   var P=$("pImport"),S=seriesForPerson(),p=person();
-  var title={photo:"拍照／截圖匯入",paste:"貼上文字匯入",manual:"手動新增"}[imp.mode];
+  var title={photo:"拍照／截圖匯入",paste:"手動新增",manual:"手動新增"}[imp.mode];
   var h='<h2>'+title+'：存到「'+esc(p.name)+'」</h2>';
   h+='<div class="row"><label class="sub">檢驗日期 <input type="date" id="impDate" value="'+esc(fmtD(imp.date))+'"></label><label class="sub">院所 <input type="text" id="impInst" value="'+esc(imp.inst)+'" placeholder="選填"></label></div>';
   if(imp.mode==="photo"){
@@ -1130,9 +1130,9 @@ function renderImport(){
     if(imp.busy)h+='<div class="prog"><div id="impBar" style="width:'+Math.round((imp.pct||0)*100)+'%"></div></div>';
     if(imp.status)h+='<p class="sub" id="impSt">'+esc(imp.status)+'</p>';
   }
-  if(imp.mode==="paste"||(imp.mode==="photo"&&!imp.busy&&imp.text!=="")){
-    h+=(imp.mode==="photo"?'<details><summary class="sub">辨識出的文字（可修改後按「重新解析」）</summary>':'<p class="sub">把報告上的文字貼在這裡。手機可以在截圖上長按文字，選「拷貝」或「全選」（iPhone 的原況文字、Android 的 Google 智慧鏡頭都可以）。</p>')+
-      '<textarea id="impText" aria-label="報告文字">'+esc(imp.text)+'</textarea><div class="row"><button type="button" id="impParse">'+(imp.mode==="paste"?"解析":"重新解析")+'</button></div>'+(imp.mode==="photo"?'</details>':"");
+  if(imp.mode==="paste"||imp.mode==="manual"||(imp.mode==="photo"&&!imp.busy&&imp.text!=="")){
+    h+=(imp.mode==="photo"?'<details><summary class="sub">辨識出的文字（可修改後按「重新解析」）</summary>':'<p class="sub">可以直接在下面表格逐筆輸入；或把報告上的文字貼在這裡，按「解析」自動填入表格。</p>')+
+      '<textarea id="impText" aria-label="報告文字">'+esc(imp.text)+'</textarea><div class="row"><button type="button" id="impParse">'+(imp.mode==="photo"?"重新解析":"解析")+'</button></div>'+(imp.mode==="photo"?'</details>':"");
   }
   if(!imp.busy&&(imp.rows.length||imp.mode!=="paste"||imp.text)){
     var opts=function(sel){return'<option value="">（新項目）</option>'+S.map(function(s){return'<option value="'+esc(s.key)+'"'+(s.key===sel?" selected":"")+'>'+esc(s.name)+(s.sub&&s.sub!==s.name&&s.sub.length<20?"・"+esc(s.sub):"")+'</option>'}).join("")};
@@ -1169,7 +1169,7 @@ function saveImport(){
   imp=null;$("pImport").hidden=true;$("pImport").innerHTML="";
   say("已存入「"+p.name+"」"+n+" 筆檢驗數值"+(dup?"（"+dup+" 筆已經有了，略過）":"")+(bad?"（"+bad+" 列資料不完整，略過）":"")+"。可以在「重點」或「檢驗趨勢」看到。");
 }
-$("btnPaste").addEventListener("click",function(){openImport("paste")});
+
 $("btnManual").addEventListener("click",function(){openImport("manual")});
 
 /* OCR：tesseract.js，程式與繁中／英文字庫都在 lib/ 資料夾，不連網 */
@@ -1467,6 +1467,15 @@ function boot(s){
         migMsg="已自動把舊版「健康存摺統計工具」的資料合併到「"+me.name+"」：檢驗 "+before+" → "+me.data.labs.length+" 筆（重複的已去除）。";
         if(s)setTimeout(saveAll,0);
       }}}catch(e){}
+  /* 本機資料檔 health-data.js（放在程式旁邊）：開啟時自動把裡面每個人的資料合併進來，只合併一次、自動去重 */
+  try{var P=window.HEALTH_PRELOAD;
+    if(P&&P.people&&P.people.length){var pfp=String(P.id||"")+":"+P.people.length;
+      if(localStorage.getItem(KEY+"-preload")!==pfp){var got=[];
+        P.people.forEach(function(pp){if(!pp||!pp.data)return;var tgt=null;store.people.forEach(function(x){if(!tgt&&x.name===pp.name)tgt=x});
+          if(!tgt){tgt=newPerson(pp.name,[]);store.people.push(tgt)}
+          tgt.data=sortData(tgt.data?merge(tgt.data,pp.data):dedupeData(pp.data));got.push(pp.name+" "+tgt.data.labs.length+" 筆檢驗")});
+        localStorage.setItem(KEY+"-preload",pfp);
+        if(got.length){migMsg=(migMsg?migMsg+" ":"")+"已載入本機資料檔：「"+got.join("、")+"」。";saveAll()}}}}catch(e){}
   refreshData();renderPersons();render();
   if(migMsg){if(!s)saveAll();say(migMsg)}
   idb.get("fileHandle").then(function(h){if(!h||!h.queryPermission)return;fileH=h;return h.queryPermission({mode:"readwrite"}).then(function(r){fileOk=r==="granted";if(fileOk)return adoptHandle(h,"auto");fileStatus()})}).catch(function(){}).then(fileStatus);
