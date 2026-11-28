@@ -367,6 +367,7 @@ header #btnTheme .ic{font-size:12px}
 @keyframes keepPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,#0f8f96 55%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,#0f8f96 0%,transparent)}}
 @media (prefers-reduced-motion:reduce){#btnKeep.keep-need{animation:none}}
 .lab-top{margin:10px 0 14px}.lab-top>.card{box-shadow:none}
+.pw-h{margin:14px 0 4px;font-size:15px;color:var(--c6)}
 </style>
 </head>
 <body>
@@ -399,7 +400,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：曲線直接顯示在快速選取下方">V1.2.9</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：管理成員可設定、變更、取消密碼">V1.3.0</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -964,13 +965,25 @@ function renderPersons(){
 function renderPersonPanel(){
   $("pPerson").innerHTML='<h2>管理成員</h2><p class="sub">每個人的資料、重點項目和提醒都分開存放。</p>'+
     store.people.map(function(p){var n=(p.data?p.data.labs.length:0)+p.manual.length;return'<div class="row"><input type="text" data-rn="'+esc(p.id)+'" value="'+esc(p.name)+'" aria-label="名稱"><span class="sub">'+n+' 筆檢驗</span>'+(store.people.length>1?'<button type="button" class="del" data-rm="'+esc(p.id)+'">刪除這個人</button>':"")+'</div>'}).join("")+
-    '<div class="row"><input type="text" id="newName" placeholder="新增成員名稱" aria-label="新增成員名稱"><button type="button" id="btnAddP">新增</button><button type="button" class="primary" id="btnCloseP">完成</button></div>';
+    '<div class="row"><input type="text" id="newName" placeholder="新增成員名稱" aria-label="新增成員名稱"><button type="button" id="btnAddP">新增</button><button type="button" class="primary" id="btnCloseP">完成</button></div>'+
+    '<h3 class="pw-h">使用者密碼</h3>'+(pwOff()?
+      '<p class="sub">目前：<strong>不使用密碼</strong>（打開直接進入）。</p><div class="row"><input type="password" id="pwNew" placeholder="新密碼（至少 4 個字）" aria-label="新密碼" autocomplete="new-password"><button type="button" class="primary" id="pwSet">設定密碼</button></div>':
+      '<p class="sub">目前：<strong>已設定密碼</strong>，打開時要輸入。</p><div class="row"><input type="password" id="pwOld" placeholder="目前密碼" aria-label="目前密碼" autocomplete="current-password"><input type="password" id="pwNew" placeholder="新密碼（至少 4 個字）" aria-label="新密碼" autocomplete="new-password"><button type="button" class="primary" id="pwChange">變更密碼</button><button type="button" class="del" id="pwRemove">取消密碼（不用密碼）</button></div>')+
+    '<p class="sub" id="pwMsg" role="status">'+esc(pwMsgText)+'</p><p class="sub">密碼只存在這台電腦的這個瀏覽器。</p>';
 }
+var pwMsgText="";
 $("person").addEventListener("change",function(){store.cur=this.value;saveAll();afterStoreChange();say("已切換到「"+person().name+"」。")});
 $("btnPerson").addEventListener("click",function(){var P=$("pPerson");P.hidden=!P.hidden;if(!P.hidden)renderPersonPanel()});
 $("pPerson").addEventListener("change",function(ev){var t=ev.target;if(t.dataset.rn){var v=t.value.trim();if(!v)return;store.people.forEach(function(p){if(p.id===t.dataset.rn)p.name=v});saveAll();renderPersons();render()}});
 $("pPerson").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
-  if(b.id==="btnCloseP"){$("pPerson").hidden=true;return}
+  if(b.id==="btnCloseP"){$("pPerson").hidden=true;pwMsgText="";return}
+  if(b.id==="pwSet"||b.id==="pwChange"||b.id==="pwRemove"){
+    var old=$("pwOld")?$("pwOld").value:"",nw=$("pwNew").value;
+    if(b.id!=="pwSet"&&!pwOk(old)){pwMsgText="目前密碼不正確。";renderPersonPanel();return}
+    if(b.id==="pwRemove"){try{localStorage.setItem(PW_KEY,"none")}catch(e){}pwMsgText="✔ 已取消密碼，之後打開直接進入。";renderPersonPanel();return}
+    if(nw.length<4){pwMsgText="新密碼至少要 4 個字。";renderPersonPanel();return}
+    try{localStorage.setItem(PW_KEY,sha256(PW_SALT+nw))}catch(e){}
+    pwMsgText=b.id==="pwSet"?"✔ 已設定密碼，下次打開要輸入。":"✔ 已變更密碼。";renderPersonPanel();return}
   if(b.id==="btnAddP"){var v=$("newName").value.trim();if(!v)return;var np=newPerson(v,[]);store.people.push(np);store.cur=np.id;saveAll();afterStoreChange();renderPersonPanel();say("已新增「"+v+"」並切換過去。");return}
   if(b.dataset.rm){var p=store.people.filter(function(x){return x.id===b.dataset.rm})[0];if(!p||!confirm("確定刪除「"+p.name+"」和他的所有資料？這個動作無法復原（除非有備份）。"))return;
     store.people=store.people.filter(function(x){return x!==p});if(store.cur===p.id)store.cur=store.people[0].id;saveAll();afterStoreChange();renderPersonPanel()}});
@@ -1422,10 +1435,11 @@ function sha256(str){
   return H.map(function(x){return("00000000"+(x>>>0).toString(16)).slice(-8)}).join("");
 }
 function pwHash(){try{return localStorage.getItem(PW_KEY)||PW_DEFAULT}catch(e){return PW_DEFAULT}}
-function pwOk(p){return sha256(PW_SALT+p)===pwHash()}
+function pwOff(){return pwHash()==="none"}
+function pwOk(p){if(pwOff())return true;return sha256(PW_SALT+p)===pwHash()}
 function unlock(){root.classList.remove("locked");try{sessionStorage.setItem(KEY+"-unlocked","1")}catch(e){}
   if(typeof ghSync==="function"&&ghOn())setTimeout(function wait(){if(!store)return setTimeout(wait,300);ghSync("pull")},300)}
-function lockNow(){root.classList.add("locked");try{sessionStorage.removeItem(KEY+"-unlocked")}catch(e){}closeAdmin();$("lockPw").value="";$("lockMsg").textContent="";setTimeout(function(){$("lockPw").focus()},50)}
+function lockNow(){if(pwOff()){say("目前沒有使用密碼，無法鎖定。可以在「管理成員」設定密碼。");closeAdmin();return}root.classList.add("locked");try{sessionStorage.removeItem(KEY+"-unlocked")}catch(e){}closeAdmin();$("lockPw").value="";$("lockMsg").textContent="";setTimeout(function(){$("lockPw").focus()},50)}
 $("lockForm").addEventListener("submit",function(ev){ev.preventDefault();var p=$("lockPw").value;
   if(pwOk(p)){$("lockMsg").textContent="";$("lockPw").value="";unlock()}else{$("lockMsg").textContent="密碼不正確，請再試一次。";$("lockPw").select()}});
 $("lockShow").addEventListener("change",function(){$("lockPw").type=this.checked?"text":"password"});
@@ -1448,7 +1462,7 @@ $("admReset").addEventListener("click",function(){var m=$("admMsg");
   if(!pwOk($("admOld").value)){m.textContent="要恢復預設密碼，請先在「目前密碼」輸入正確密碼。";m.className="adm-msg err";return}
   try{localStorage.removeItem(PW_KEY)}catch(e){}$("admOld").value="";m.textContent="已恢復為預設密碼。";m.className="adm-msg ok"});
 var wasOpen=false;try{wasOpen=sessionStorage.getItem(KEY+"-unlocked")==="1"}catch(e){}
-if(wasOpen)unlock();else setTimeout(function(){$("lockPw").focus()},50);
+if(wasOpen||pwOff())unlock();else setTimeout(function(){$("lockPw").focus()},50);
 /* ---------- 多個分頁同時開著：別的分頁存檔後，這裡自動換成最新資料，避免舊分頁蓋掉新資料 ---------- */
 window.addEventListener("storage",function(e){
   if(e.key!==KEY||!e.newValue||!store)return;
