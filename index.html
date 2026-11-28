@@ -391,6 +391,10 @@ header select,header #btnPerson{min-height:34px}
 .adm-filest{font-size:13px}
 @media (max-width:900px){.drop#drop{flex-wrap:wrap}.drop#drop p{flex:1 1 100%}.drop#drop .actions{justify-content:flex-start}}
 @media (max-width:600px){header{padding:10px 14px!important}header h1{font-size:20px}.drop#drop .actions button{flex:1 1 calc(50% - 6px);white-space:normal;line-height:1.2;font-size:13.5px;padding:4px 8px}}
+/* V1.4.2 重點頁卡片上方改成淺淡藍細線 */
+#v-focus .card{border-top:3px solid #cfe8f7}
+:root[data-theme="dark"] #v-focus .card{border-top-color:#2c4a5c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #v-focus .card{border-top-color:#2c4a5c}}
 </style>
 </head>
 <body>
@@ -435,7 +439,7 @@ header select,header #btnPerson{min-height:34px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：更新後自動換成新版，不用重新開啟">V1.4.1</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：重點頁卡片上方改淺藍細線">V1.4.2</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -1521,7 +1525,7 @@ window.addEventListener("popstate",function(){Object.keys(navOpen).forEach(funct
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape"){var k=Object.keys(navOpen);if(k.length)navClose(k[k.length-1])}});
 
 /* ---------- 自動更新：資料夾裡的程式換新版時，開著的頁面自己重新載入，不用重新開啟 ---------- */
-var APP_VER="1.4.1";
+var APP_VER="1.4.2";
 function verCheck(){
   if(document.hidden)return;
   var old=document.getElementById("verProbe");if(old)old.remove();
