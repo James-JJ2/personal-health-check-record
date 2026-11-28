@@ -406,6 +406,8 @@ button.stat.mini .sl{font-size:13px}
 header #btnIO{min-height:34px;padding:4px 14px;font-size:14px;border-radius:99px;font-weight:700}
 header #btnIO.on{background:#fff;color:#0f6e73;border-color:#fff}
 .drop[hidden]{display:none!important}
+/* V1.4.4 曲線卡片上方色線改細 */
+.labs .lab{border-top-width:2px!important}
 </style>
 </head>
 <body>
@@ -450,7 +452,7 @@ header #btnIO.on{background:#fff;color:#0f6e73;border-color:#fff}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：資料輸入列收成按鈕；最近結果分類縮小移到分頁列">V1.4.3</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：曲線卡片上方色線改細">V1.4.4</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -1552,7 +1554,7 @@ function ioAuto(){var empty=!!state.sample,pref=null;try{pref=localStorage.getIt
   if(empty)ioSet(true,false);else if(ioFirst)ioSet(pref==="1",false);ioFirst=false}
 document.addEventListener("dragenter",function(ev){if(ev.dataTransfer&&[].indexOf.call(ev.dataTransfer.types||[],"Files")>=0&&$("drop").hidden)ioSet(true,false)});
 /* ---------- 自動更新：資料夾裡的程式換新版時，開著的頁面自己重新載入，不用重新開啟 ---------- */
-var APP_VER="1.4.3";
+var APP_VER="1.4.4";
 function verCheck(){
   if(document.hidden)return;
   var old=document.getElementById("verProbe");if(old)old.remove();
