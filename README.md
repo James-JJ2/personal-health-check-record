@@ -33,7 +33,7 @@
 ## 檔案
 
 - `index.html`、`健康記錄機器人.html`：主程式（內容相同，前者給線上網址和 App 用）
-- `健康存摺統計工具.html`（V1.1，2026-11-24）：單檔版健康存摺統計工具，用 Chrome 直接開啟。匯入健康存摺 XML 或統計 Excel 後，依功能與檢驗類別用彩色色塊區分；有偏高／偏低／範圍內分類色塊、每項小趨勢圖、最近日期、「↻ 重新整理資料」、深淺色切換、手機版卡片排版、使用者密碼與右下角管理介面
+- `健康存摺統計工具.html`：舊的單檔統計工具已於 2026-11-25 **併入健康記錄機器人**，這個檔案現在只會自動導向機器人（最後一版為 V1.1.1，可從 git 歷史取回）
 - `lib/`：Excel 元件（SheetJS）、文字辨識（tesseract.js）與繁中／英文字庫
 - `manifest.webmanifest`、`sw.js`、`icons/`：安裝成 App 與離線使用
 - `health_bank_to_excel.py`：把健康存摺 XML 轉成含公式的 Excel（`python health_bank_to_excel.py 健康存摺.xml 輸出.xlsx`，需安裝 openpyxl）
