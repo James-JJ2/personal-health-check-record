@@ -1,5 +1,5 @@
 /* 健康記錄機器人：離線快取。主程式先預載；文字辨識的程式與字庫第一次用到時才快取。 */
-var V="health-robot-v3.1";
+var V="health-robot-v3.2";
 var CORE=["./","index.html","manifest.webmanifest","lib/xlsx.full.min.js","icons/icon-192.png","icons/icon-512.png"];
 self.addEventListener("install",function(e){e.waitUntil(caches.open(V).then(function(c){return c.addAll(CORE)}).then(function(){return self.skipWaiting()}))});
 self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==V}).map(function(k){return caches.delete(k)}))}).then(function(){return self.clients.claim()}))});

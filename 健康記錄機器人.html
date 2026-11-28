@@ -371,6 +371,26 @@ header #btnTheme .ic{font-size:12px}
 .backbar{position:sticky;top:0;z-index:3;display:flex;justify-content:flex-start;margin:-4px 0 10px;padding:4px 0;background:inherit}
 .back-btn{background:#34444a;color:#fff;border:0;border-radius:99px;font-weight:700;min-height:40px;padding:6px 16px}
 .back-btn:hover{background:#23323a}
+/* ---------- V1.4.0 版面精簡 ---------- */
+header{padding:10px 20px!important;gap:8px 20px;border-radius:12px}
+header h1{font-size:24px;line-height:1.2}
+header .sub{margin:2px 0 0;font-size:14px}
+header .hbtns{flex-direction:row!important;flex-wrap:wrap;align-items:center;gap:8px}
+header #btnTheme,header #btnRefresh{width:auto!important;min-height:34px!important;padding:4px 14px!important;font-size:14px!important}
+header select,header #btnPerson{min-height:34px}
+.wrap>.drop,.drop#drop{padding:8px 12px;gap:6px 12px;flex-wrap:nowrap}
+.drop#drop p{font-size:12.5px;line-height:1.45;flex:0 1 240px;color:var(--muted)}
+.drop#drop p strong{color:var(--ink);font-weight:600}
+.drop#drop .actions{flex:1 1 auto;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.drop#drop .acts{gap:6px}
+.drop#drop .actions button{min-height:36px;font-size:14px;padding:4px 12px;white-space:nowrap}
+.drop#drop .acts .no{width:19px;height:19px;font-size:12px;margin-right:5px}
+.adm-tools{display:flex;flex-wrap:wrap;gap:8px}
+.adm-tools button{flex:1 1 calc(50% - 8px);min-height:40px;font-size:14px}
+#btnGh{background:#24292f;color:#fff;border:1px solid #24292f;font-weight:700;border-radius:8px}
+.adm-filest{font-size:13px}
+@media (max-width:900px){.drop#drop{flex-wrap:wrap}.drop#drop p{flex:1 1 100%}.drop#drop .actions{justify-content:flex-start}}
+@media (max-width:600px){header{padding:10px 14px!important}header h1{font-size:20px}.drop#drop .actions button{flex:1 1 calc(50% - 6px);white-space:normal;line-height:1.2;font-size:13.5px;padding:4px 8px}}
 </style>
 </head>
 <body>
@@ -396,6 +416,18 @@ header #btnTheme .ic{font-size:12px}
     <div class="adm-btns"><button type="submit" class="adm-save">儲存新密碼</button><button type="button" id="admReset">恢復預設密碼</button></div>
     <p class="adm-msg" id="admMsg" role="status"></p>
     <hr>
+    <h3>進階：備份與跨裝置共享</h3>
+    <p class="sub adm-filest" id="fileSt"></p>
+    <div class="adm-tools" id="admTools">
+      <button type="button" id="btnFile">連結資料檔</button>
+      <button type="button" id="btnBackup">下載備份</button>
+      <button type="button" id="btnRestore">讀取備份</button>
+      <button type="button" id="btnGh">☁ GitHub 共享</button>
+      <button type="button" id="btnInstall" hidden>安裝成桌面 App</button>
+      <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+    </div>
+    <p class="sub">平常只要用主畫面的 ③ 儲存。這裡是換電腦、手機共用時才需要的進階功能。</p>
+    <hr>
     <button type="button" id="admLock" class="adm-lock">🔒 立即鎖定畫面</button>
     <p class="sub">密碼只存在這台裝置的這個瀏覽器，手機和電腦要各自設定。忘記密碼時，清除這個網站的瀏覽資料就會回到預設密碼，但已保留的健康資料也會一起清掉。</p>
   </form>
@@ -403,7 +435,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：所有面板加「返回主畫面」、上一頁可關閉面板">V1.3.1</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：版面精簡，備份／GitHub 共享移到 ⚙ 管理">V1.4.0</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -412,15 +444,7 @@ header #btnTheme .ic{font-size:12px}
     </div>
   </header>
 
-  <div class="filebar card" id="filebar">
-    <span class="st" id="fileSt"></span>
-    <button type="button" id="btnFile">連結資料檔</button>
-    <button type="button" id="btnBackup">下載備份</button>
-    <button type="button" id="btnRestore">讀取備份</button>
-    <button type="button" id="btnGh">☁ GitHub 共享</button>
-    <button type="button" id="btnInstall" hidden>安裝成桌面 App</button>
-    <input type="file" id="restoreFile" accept=".json,application/json" hidden>
-  </div>
+  <div class="filebar card" id="filebar" style="display:none"></div>
 
   <div class="drop" id="drop">
     <p><strong>把健康存摺 XML 檔、統計 Excel，或報告的截圖／照片拖到這裡</strong>。截圖和照片會自動辨識文字，核對後才存入。資料只在這台電腦處理，不會上傳。</p>
@@ -1453,6 +1477,10 @@ $("admClose").addEventListener("click",closeAdmin);
 $("admin").addEventListener("click",function(ev){if(ev.target===this)closeAdmin()});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&!$("admin").hidden)closeAdmin()});
 $("admLock").addEventListener("click",lockNow);
+/* 進階功能從 ⚙ 管理開啟面板：先關掉管理視窗，沿用它的上一頁紀錄，再把面板捲到眼前 */
+$("admTools").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b||(b.id!=="btnFile"&&b.id!=="btnGh"))return;
+  if(navOpen.admin){delete navOpen.admin;navReuse=1}$("admin").hidden=true;
+  setTimeout(function(){var pn=$(b.id==="btnFile"?"pFile":"pGh");if(pn&&!pn.hidden)pn.scrollIntoView({behavior:"smooth",block:"start"})},50)},true);
 $("admForm").addEventListener("submit",function(ev){ev.preventDefault();
   var o=$("admOld").value,n=$("admNew").value,n2=$("admNew2").value,m=$("admMsg");
   var bad=function(t){m.textContent=t;m.className="adm-msg err"};
@@ -1475,7 +1503,7 @@ window.addEventListener("storage",function(e){
 });
 
 /* ---------- 返回主畫面：每個面板都有「← 返回主畫面」，瀏覽器的「上一頁」也會關閉面板 ---------- */
-var NAV_IDS=["pPerson","pImport","pFile","pGh","admin"],navOpen={};
+var NAV_IDS=["pPerson","pImport","pFile","pGh","admin"],navOpen={},navReuse=0;
 function navEl(id){return document.getElementById(id)}
 function navClose(id,fromPop){var el=navEl(id);if(!el||el.hidden)return;el.hidden=true;if(id==="pPerson")pwMsgText="";
   if(navOpen[id]){delete navOpen[id];if(!fromPop){try{history.back()}catch(e){}}}
@@ -1484,7 +1512,7 @@ function navEnsure(){NAV_IDS.forEach(function(id){var el=navEl(id);if(!el)return
   if(el.hidden){if(navOpen[id]){delete navOpen[id];try{history.back()}catch(e){}}return}
   var host=id==="admin"?el.querySelector(".adm-card"):el;
   if(host&&!host.querySelector(":scope > .backbar")){var d=document.createElement("div");d.className="backbar";d.innerHTML='<button type="button" class="back-btn" data-back="'+id+'">← 返回主畫面</button>';host.insertBefore(d,host.firstChild)}
-  if(!navOpen[id]){navOpen[id]=1;try{history.pushState({panel:id},"")}catch(e){}}
+  if(!navOpen[id]){navOpen[id]=1;try{if(navReuse){navReuse=0;history.replaceState({panel:id},"")}else history.pushState({panel:id},"")}catch(e){}}
 })}
 var navObs=new MutationObserver(navEnsure);
 NAV_IDS.forEach(function(id){var el=navEl(id);if(el)navObs.observe(el,{attributes:true,attributeFilter:["hidden"],childList:true})});
