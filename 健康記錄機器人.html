@@ -366,6 +366,7 @@ header #btnTheme .ic{font-size:12px}
 #btnKeep.keep-need{animation:keepPulse 2s ease-in-out infinite}
 @keyframes keepPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,#0f8f96 55%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,#0f8f96 0%,transparent)}}
 @media (prefers-reduced-motion:reduce){#btnKeep.keep-need{animation:none}}
+.lab-top{margin:10px 0 14px}.lab-top>.card{box-shadow:none}
 </style>
 </head>
 <body>
@@ -398,7 +399,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：本機資料檔每次開啟自動補回、多分頁同步">V1.2.8</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：曲線直接顯示在快速選取下方">V1.2.9</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -834,8 +835,8 @@ function renderLabs(d){
       '<td class="num">'+(vs.length?avgOf(vs):"")+'</td><td class="num">'+(vs.length?Math.min.apply(null,vs):"")+'</td><td class="num">'+(vs.length?Math.max.apply(null,vs):"")+'</td><td>'+esc(fmtD(p.date))+'</td></tr>'+
       '<tr class="detail" id="ldet'+i+'" hidden><td></td><td></td><td colspan="10"><div class="scroll"><table><thead><tr><th>檢驗日期</th><th class="num">結果</th><th>判讀</th><th>參考值</th><th>院所</th></tr></thead><tbody>'+det+'</tbody></table></div></td></tr>'}).join("");
   $("v-labs").innerHTML=statBlocks(S)+'<div class="card"><h2>檢驗項目列表</h2><div class="tools"><button type="button" id="selAll">全選</button><button type="button" id="selNone">取消全選</button><button type="button" id="expAll">全部展開</button><button type="button" id="expNone">全部收合</button></div><div class="tools"><span class="sub" style="align-self:center">快速選取：</span>'+GROUPS.map(function(g,i){var n=S.filter(function(x){return g.re.test(x.name+" "+x.sub+" "+x.code)}).length;return n?'<button type="button" class="grp g'+i+'" data-g="'+i+'">'+esc(g.name)+'（'+n+'）</button>':""}).join("")+'</div>'+
-    '<p class="sub">勾選最前面的方框可複選，下方會列出曲線與統計表。按「＋」展開該項目每一次的數值。</p>'+
-    tbl([["選取"],["展開"],["項目"],["代碼"],["次數",1],["最近結果",1],["判讀"],["參考值"],["平均",1],["最低",1],["最高",1],["最近日期"]],rows)+'</div>'+noResultCard(d)+'<div id="labSel" class="view"></div>';
+    '<div id="labSel" class="view lab-top"></div>'+'<p class="sub">勾選最前面的方框可複選，曲線與統計表會出現在上方。按「＋」展開該項目每一次的數值。</p>'+
+    tbl([["選取"],["展開"],["項目"],["代碼"],["次數",1],["最近結果",1],["判讀"],["參考值"],["平均",1],["最低",1],["最高",1],["最近日期"]],rows)+'</div>'+noResultCard(d);
   renderSel();
 }
 function renderSel(){
@@ -1343,8 +1344,8 @@ $("v-labs").addEventListener("click",function(ev){var b=ev.target.closest("butto
   var all=[].slice.call(this.querySelectorAll("button.exp")),picks=[].slice.call(this.querySelectorAll("input.pick"));
   if(b.id==="expAll")all.forEach(function(x){setRow(x,true)});
   else if(b.id==="expNone")all.forEach(function(x){setRow(x,false)});
-  else if(b.classList.contains("grp")){var g=GROUPS[+b.dataset.g];state.sel={};(state.series||[]).forEach(function(x){if(g.re.test(x.name+" "+x.sub+" "+x.code))state.sel[x.key]=1});picks.forEach(function(c){c.checked=!!state.sel[c.dataset.k]});saveSel();renderSel();var t=$("labSel");if(t&&t.scrollIntoView)t.scrollIntoView({behavior:"smooth",block:"start"})}
-  else if(b.classList.contains("stat")){var f=b.dataset.f;state.sel={};(state.series||[]).forEach(function(x){if((x.lastp.f||"")===f)state.sel[x.key]=1});picks.forEach(function(c){c.checked=!!state.sel[c.dataset.k]});saveSel();renderSel();var t2=$("labSel");if(t2&&t2.scrollIntoView)t2.scrollIntoView({behavior:"smooth",block:"start"})}
+  else if(b.classList.contains("grp")){var g=GROUPS[+b.dataset.g];state.sel={};(state.series||[]).forEach(function(x){if(g.re.test(x.name+" "+x.sub+" "+x.code))state.sel[x.key]=1});picks.forEach(function(c){c.checked=!!state.sel[c.dataset.k]});saveSel();renderSel();var t=$("labSel");}
+  else if(b.classList.contains("stat")){var f=b.dataset.f;state.sel={};(state.series||[]).forEach(function(x){if((x.lastp.f||"")===f)state.sel[x.key]=1});picks.forEach(function(c){c.checked=!!state.sel[c.dataset.k]});saveSel();renderSel();var t2=$("labSel");}
   else if(b.id==="selAll"||b.id==="selNone"){var on=b.id==="selAll";state.sel={};picks.forEach(function(c){c.checked=on;if(on)state.sel[c.dataset.k]=1});saveSel();renderSel()}});
 $("v-visits").addEventListener("input",function(ev){if(ev.target.id==="q"){state.q=ev.target.value;renderVisits(state.data);var q=$("q");q.focus();q.setSelectionRange(q.value.length,q.value.length)}});
 $("v-visits").addEventListener("change",function(ev){if(ev.target.id==="yearSel"){state.year=ev.target.value;renderVisits(state.data)}});
