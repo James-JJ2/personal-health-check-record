@@ -391,7 +391,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-25：併入健康存摺統計工具；檢驗趨勢快速選取新增「發炎指數」">V1.2.2</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：開啟時自動合併舊版統計工具的資料">V1.2.3</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -1428,8 +1428,20 @@ if(wasOpen)unlock();else setTimeout(function(){$("lockPw").focus()},50);
 /* ---------- 啟動 ---------- */
 function boot(s){
   store=fixStore(s)||defaultStore();
-  if(!s){try{var old=JSON.parse(localStorage.getItem("mhb-stats-v1")||"null");if(old&&old.visits){store.people[0].data=old;}}catch(e){}} /* 舊版保留的資料搬到「我」 */
+  /* 自動合併舊版「健康存摺統計工具」存在瀏覽器裡的資料到「我」（同一瀏覽器、同樣用檔案開啟時才讀得到）；重複紀錄自動去除，只合併一次 */
+  var migMsg="";
+  try{var raw=localStorage.getItem("mhb-stats-v1"),old=raw?JSON.parse(raw):null;
+    if(old&&old.visits&&old.meta){var fp=raw.length+":"+(old.meta.dl||"");
+      if(localStorage.getItem(KEY+"-migrated")!==fp){
+        var me=null;store.people.forEach(function(p){if(!me&&(p.name==="我"||/james/i.test(p.name)))me=p});me=me||store.people[0];
+        var before=me.data?me.data.labs.length:0;
+        me.data=sortData(me.data?merge(me.data,old):dedupeData(old));
+        localStorage.setItem(KEY+"-migrated",fp);
+        migMsg="已自動把舊版「健康存摺統計工具」的資料合併到「"+me.name+"」：檢驗 "+before+" → "+me.data.labs.length+" 筆（重複的已去除）。";
+        if(s)setTimeout(saveAll,0);
+      }}}catch(e){}
   refreshData();renderPersons();render();
+  if(migMsg){if(!s)saveAll();say(migMsg)}
   idb.get("fileHandle").then(function(h){if(!h||!h.queryPermission)return;fileH=h;return h.queryPermission({mode:"readwrite"}).then(function(r){fileOk=r==="granted";if(fileOk)return adoptHandle(h,"auto");fileStatus()})}).catch(function(){}).then(fileStatus);
 }
 idb.get("store").then(function(t){return t?JSON.parse(t):null}).catch(function(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}}).then(boot,function(){boot(null)});
