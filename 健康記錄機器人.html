@@ -398,7 +398,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：③ 儲存改為直接儲存，不跳視窗">V1.2.5</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：成員 James／CC、資料雙重保存、空白成員不再顯示示範資料">V1.2.6</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -476,7 +476,7 @@ var store=null; /* {version,cur,savedAt,people:[{id,name,data,manual,doses,pins,
 var uid=function(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
 var today=function(){var d=new Date();return d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)};
 function newPerson(name,pins){return{id:uid(),name:name,data:null,manual:[],doses:[],pins:pins||[],months:3,sel:null}}
-function defaultStore(){var a=newPerson("我",["甲狀腺"]),b=newPerson("太太",[]);return{version:2,cur:a.id,savedAt:0,people:[a,b]}}
+function defaultStore(){var a=newPerson("James",["甲狀腺"]),b=newPerson("CC",[]);return{version:2,cur:a.id,savedAt:0,people:[a,b]}}
 function person(){var p=null;store.people.forEach(function(x){if(x.id===store.cur)p=x});return p||store.people[0]}
 function fixStore(s){
   if(!s||!s.people||!s.people.length)return null;
@@ -495,7 +495,8 @@ var hasFS=!!(window.showSaveFilePicker&&window.showOpenFilePicker);
 function saveAll(){
   store.savedAt=Date.now();
   var json=JSON.stringify(store);
-  idb.set("store",json).catch(function(){try{localStorage.setItem(KEY,json)}catch(e){}});
+  idb.set("store",json).catch(function(){});
+  try{localStorage.setItem(KEY,json)}catch(e){} /* 雙重保存，任一處遺失都還有另一份 */
   if(fileH&&fileOk){clearTimeout(fileTimer);fileTimer=setTimeout(writeFile,400)}
   if(typeof ghQueue==="function")ghQueue();
   fileStatus();
@@ -531,7 +532,7 @@ function afterStoreChange(){state.selInit=false;state.q="";state.year="";refresh
 function refreshData(){
   var p=person(),has=!!(p.data||p.manual.length);
   state.sample=!has;
-  if(!has){state.data=sampleData();return}
+  if(!has){state.data={meta:{},visits:[],dental:[],vacc:[],labs:[],imaging:[]};return}
   var b=p.data||{meta:{},visits:[],dental:[],vacc:[],labs:[],imaging:[]};
   var labs=b.labs.concat(p.manual.map(function(m){return{visit:m.date,date:m.date,up:"M"+m.id,inst:m.inst||"",code:"",order:"",item:m.name,result:m.value+"",ref:m.ref||"",key:m.key,mid:m.id,src:m.src,unit:m.unit||""}}));
   state.data={meta:b.meta,visits:b.visits,dental:b.dental,vacc:b.vacc,imaging:b.imaging,labs:labs.sort(function(x,y){return x.date<y.date?-1:x.date>y.date?1:0})};
@@ -892,7 +893,7 @@ function renderOther(d){
 function render(){
   var d=state.data,p=person();
   $("sampleTag").hidden=!state.sample;
-  $("metaLine").textContent=state.sample?"「"+p.name+"」還沒有資料，下面是虛構的示範資料。匯入健康存摺，或用拍照／截圖匯入報告後，就會換成"+p.name+"的紀錄。"
+  $("metaLine").textContent=state.sample?"「"+p.name+"」還沒有資料：按 ① 匯入 XML，再按 ③ 儲存。"
     :p.name+(p.data?"・身分證號 "+(p.data.meta.id||"-")+"・健康存摺下載日 "+(fmtD(p.data.meta.dl)||"-"):"")+"・自行紀錄 "+p.manual.length+" 筆";
   renderOverview(d);renderLabs(d);renderFocus(d);renderVisits(d);renderMeds(d);renderDental(d);renderOther(d);
 }
@@ -1448,8 +1449,12 @@ $("admReset").addEventListener("click",function(){var m=$("admMsg");
 var wasOpen=false;try{wasOpen=sessionStorage.getItem(KEY+"-unlocked")==="1"}catch(e){}
 if(wasOpen)unlock();else setTimeout(function(){$("lockPw").focus()},50);
 /* ---------- 啟動 ---------- */
+function pickNewest(s){var l=null;try{l=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+  if(l&&l.people&&(!s||(l.savedAt||0)>(s.savedAt||0)))return l;return s}
 function boot(s){
+  s=pickNewest(s);
   store=fixStore(s)||defaultStore();
+  var renamed=false;store.people.forEach(function(p){if(p.name==="我"){p.name="James";renamed=true}if(p.name==="太太"){p.name="CC";renamed=true}});if(renamed&&s)setTimeout(saveAll,0);
   /* 自動合併舊版「健康存摺統計工具」存在瀏覽器裡的資料到「我」（同一瀏覽器、同樣用檔案開啟時才讀得到）；重複紀錄自動去除，只合併一次 */
   var migMsg="";
   try{var raw=localStorage.getItem("mhb-stats-v1"),old=raw?JSON.parse(raw):null;
