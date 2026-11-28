@@ -158,7 +158,7 @@ nav button[aria-selected="true"]{background:var(--tc);color:#fff;border-color:va
 .pill.hi{background:var(--crit);color:#fff;border-color:var(--crit)}
 .pill.lo{background:var(--c6);color:#fff;border-color:var(--c6)}
 .pill.ok{background:var(--good);color:#fff;border-color:var(--good)}
-.g0{--gc:var(--c3)}.g1{--gc:var(--c2)}.g2{--gc:var(--c4)}.g3{--gc:var(--c5)}.g4{--gc:var(--c6)}.gx{--gc:var(--accent)}
+.g0{--gc:var(--c3)}.g1{--gc:var(--c2)}.g2{--gc:var(--c4)}.g3{--gc:var(--c5)}.g4{--gc:var(--c6)}.g5{--gc:#c94a3a}.gx{--gc:var(--accent)}
 .gtag{display:inline-block;font-size:12px;padding:0 8px;margin-left:6px;border-radius:4px;background:var(--gc);color:#fff;font-weight:700;white-space:nowrap}
 button.grp{border-color:var(--gc);color:var(--gc);background:color-mix(in srgb,var(--gc) 10%,var(--surface));font-weight:700}
 button.grp:hover{background:var(--gc);color:#fff}
@@ -391,7 +391,7 @@ header #btnTheme .ic{font-size:12px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-24：GitHub 私人 repo 共享資料；修正 XML 與 Excel 重複匯入">V1.2.1</span><span class="sample" id="sampleTag">示範資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-25：併入健康存摺統計工具；檢驗趨勢快速選取新增「發炎指數」">V1.2.2</span><span class="sample" id="sampleTag">示範資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -772,7 +772,8 @@ var GROUPS=[
   {name:"血糖",re:/葡萄糖|醣化|HbA1c|Sugar|09005C|09006C/i},
   {name:"血脂",re:/膽固醇|三酸甘油|Cholesterol|Triglyceride|H\.?D\.?L|L\.?D\.?L/i},
   {name:"肝腎功能",re:/肌酸酐|肌酐|eGFR|轉氨|尿酸|微白蛋白|GPT|GOT|Creatinine/i},
-  {name:"血壓體重",re:/收縮壓|舒張壓|體重|身高/}];
+  {name:"血壓體重",re:/收縮壓|舒張壓|體重|身高/},
+  {name:"發炎指數",re:/12015C|08005C|C-?反應|Ｃ反應|\b(hs-?)?CRP\b|紅血球[沉沈]降|\bESR\b|^(WBC\b|白血球計數|White Blood Cell).*08011C|^(Seg\b|Segment|嗜中性白血球|Neutrophil).*08013C|Procalcitonin|降鈣素原|\bIL-?6\b|介白素/i}];
 function noResultCard(d){
   var have={},img={},m={};d.labs.forEach(function(l){have[l.code]=1});d.imaging.forEach(function(x){img[x.code]=1});
   d.visits.forEach(function(v){var dt=v.date||v.rx;v.items.forEach(function(x){
