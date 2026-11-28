@@ -435,7 +435,7 @@ header select,header #btnPerson{min-height:34px}
 <div class="wrap">
   <header>
     <div>
-      <h1>健康記錄機器人<span class="ver" title="2026-11-28：版面精簡，備份／GitHub 共享移到 ⚙ 管理">V1.4.0</span><span class="sample" id="sampleTag">尚無資料</span></h1>
+      <h1>健康記錄機器人<span class="ver" title="2026-11-28：更新後自動換成新版，不用重新開啟">V1.4.1</span><span class="sample" id="sampleTag">尚無資料</span></h1>
       <p class="sub" id="metaLine"></p>
     </div>
     <div class="hbtns">
@@ -1519,6 +1519,24 @@ NAV_IDS.forEach(function(id){var el=navEl(id);if(el)navObs.observe(el,{attribute
 document.addEventListener("click",function(ev){var b=ev.target.closest&&ev.target.closest("[data-back]");if(b){ev.preventDefault();navClose(b.dataset.back)}});
 window.addEventListener("popstate",function(){Object.keys(navOpen).forEach(function(id){delete navOpen[id];navClose(id,true)})});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape"){var k=Object.keys(navOpen);if(k.length)navClose(k[k.length-1])}});
+
+/* ---------- 自動更新：資料夾裡的程式換新版時，開著的頁面自己重新載入，不用重新開啟 ---------- */
+var APP_VER="1.4.1";
+function verCheck(){
+  if(document.hidden)return;
+  var old=document.getElementById("verProbe");if(old)old.remove();
+  var sc=document.createElement("script");sc.id="verProbe";sc.src="version.js?t="+Date.now();
+  sc.onload=function(){var v=window.ROBOT_VER;if(!v||v===APP_VER)return;
+    var k=KEY+"-reloaded-for";try{if(sessionStorage.getItem(k)===v)return;sessionStorage.setItem(k,v)}catch(e){}
+    var busy=["pImport","pPerson","pFile","pGh"].some(function(id){var e=document.getElementById(id);return e&&!e.hidden})||(document.getElementById("admin")&&!document.getElementById("admin").hidden);
+    if(busy){try{sessionStorage.removeItem(k)}catch(e){}return}
+    try{if(store)saveAll()}catch(e){}
+    location.reload()};
+  sc.onerror=function(){};
+  document.head.appendChild(sc)}
+document.addEventListener("visibilitychange",verCheck);
+window.addEventListener("focus",verCheck);
+setInterval(verCheck,20000);
 /* ---------- 啟動 ---------- */
 function pickNewest(s){var l=null;try{l=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
   if(l&&l.people&&(!s||(l.savedAt||0)>(s.savedAt||0)))return l;return s}
